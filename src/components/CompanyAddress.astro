@@ -1,0 +1,41 @@
+---
+const phoneDisplay = "+1 (253) 642-6189";
+const phoneHref = "tel:+12536426189";
+---
+
+<section class="company-address" aria-label="Company address">
+  <div class="wrap">
+    <address class="company-address__text">
+      Folstad Consulting Inc · 422 Richards St, Suite 170 · Vancouver, BC&nbsp;V6B&nbsp;2Z4 ·
+      <a href={phoneHref}>{phoneDisplay}</a>
+    </address>
+  </div>
+</section>
+
+<style>
+  .company-address {
+    width: 100%;
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--ghost);
+    background: var(--paper);
+  }
+
+  .company-address__text {
+    margin: 0;
+    font-style: normal;
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: var(--slate);
+    word-spacing: normal;
+    letter-spacing: normal;
+  }
+
+  .company-address__text a {
+    color: var(--slate);
+    text-decoration: none;
+  }
+
+  .company-address__text a:hover {
+    color: var(--signal);
+  }
+</style>

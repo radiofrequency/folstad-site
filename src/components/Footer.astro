@@ -1,0 +1,64 @@
+---
+import { X_DM_URL, X_HANDLE } from "../lib/links";
+
+const base = import.meta.env.BASE_URL;
+---
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div class="footer__brand">
+      <img src={`${base}mark.svg`} width="22" height="22" alt="" />
+      <span>Folstad AI</span>
+    </div>
+    <p class="footer__copy">Folstad AI is a service of Folstad Consulting Inc.</p>
+    <a class="footer__x" href={X_DM_URL} target="_blank" rel="noopener noreferrer">{X_HANDLE}</a>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--ghost);
+  }
+
+  .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-6);
+    justify-content: space-between;
+  }
+
+  .footer__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-sm);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .footer__brand img {
+    width: 1.35rem;
+    height: 1.35rem;
+    opacity: 0.9;
+  }
+
+  .footer__copy {
+    margin: 0;
+    font-size: var(--text-xs);
+    color: var(--slate);
+  }
+
+  .footer__x {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--slate);
+    text-decoration: none;
+  }
+
+  .footer__x:hover {
+    color: var(--signal);
+  }
+</style>

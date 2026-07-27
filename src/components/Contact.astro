@@ -1,0 +1,35 @@
+---
+import { X_DM_URL, X_HANDLE } from "../lib/links";
+---
+
+<section class="section section--veil contact" id="contact" aria-labelledby="contact-title">
+  <div class="wrap reveal">
+    <span class="section-label">Contact</span>
+    <h2 id="contact-title" class="section-title">Reach out.</h2>
+    <p class="section-lede">Ready to automate? Start a conversation on X.</p>
+
+    <div class="contact__actions">
+      <a class="btn" href={X_DM_URL} target="_blank" rel="noopener noreferrer">
+        {X_HANDLE}
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="contact__hint">No forms. No funnels. Just a direct message.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact__actions {
+    margin-top: var(--space-7);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .contact__hint {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+</style>

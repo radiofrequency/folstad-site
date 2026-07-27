@@ -1,0 +1,103 @@
+---
+const kits = [
+  {
+    name: "Restaurant",
+    promise: "Orders, reservations, review response, staff ops",
+  },
+  {
+    name: "Bar",
+    promise: "Inventory cues, events, guest messaging",
+  },
+  {
+    name: "Real Estate",
+    promise: "Listing ops, lead triage, follow-up",
+  },
+  {
+    name: "Legal Firm",
+    promise: "Intake, document assist, client updates",
+  },
+  {
+    name: "Accounting Firm",
+    promise: "Client intake, recurring workflows, review prep",
+  },
+  {
+    name: "Customer Support",
+    promise: "Shared inbox agents, FAQ deflection, escalation",
+  },
+];
+---
+
+<section class="section section--veil" id="starter-kits" aria-labelledby="kits-title">
+  <div class="wrap reveal">
+    <span class="section-label">Starter kits</span>
+    <h2 id="kits-title" class="section-title">Ready paths for common SME work.</h2>
+    <p class="section-lede">
+      Pre-shaped agent setups for industries we already know — customized to your data and tools.
+      Reach out to see which kit fits, or we build from scratch.
+    </p>
+
+    <ul class="kits">
+      {
+        kits.map((kit) => (
+          <li class="kits__item">
+            <span class="kits__name">{kit.name}</span>
+            <span class="kits__promise">{kit.promise}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .kits {
+    list-style: none;
+    margin: var(--space-8) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+  }
+
+  @media (min-width: 720px) {
+    .kits {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--space-8);
+    }
+  }
+
+  .kits__item {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-5) 0;
+    border-top: 1px solid var(--ghost);
+    transition: background var(--duration) var(--ease);
+  }
+
+  @media (min-width: 720px) {
+    .kits__item:nth-last-child(-n + 2) {
+      border-bottom: 1px solid var(--ghost);
+    }
+  }
+
+  @media (max-width: 719px) {
+    .kits__item:last-child {
+      border-bottom: 1px solid var(--ghost);
+    }
+  }
+
+  .kits__item:hover .kits__name {
+    color: var(--signal);
+  }
+
+  .kits__name {
+    font-size: var(--text-lg);
+    font-family: var(--font-display);
+    color: var(--ink);
+    transition: color var(--duration) var(--ease);
+  }
+
+  .kits__promise {
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+</style>

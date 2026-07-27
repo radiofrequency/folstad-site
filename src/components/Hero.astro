@@ -1,0 +1,151 @@
+---
+import { X_DM_URL, X_HANDLE } from "../lib/links";
+---
+
+<section class="hero" id="hero" aria-labelledby="hero-title">
+  <div class="wrap hero__inner">
+    <h1 id="hero-title" class="hero__title">
+      Integrate AI.<br />
+      Automate the work that wastes people.
+    </h1>
+    <p class="hero__sub">
+      Custom agents trained on <em>your</em> data and <em>your</em> processes — for companies of any size.
+    </p>
+    <div class="hero__actions">
+      <a class="btn" href={X_DM_URL} target="_blank" rel="noopener noreferrer">
+        Message on X
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="hero__handle" href={X_DM_URL} target="_blank" rel="noopener noreferrer">{X_HANDLE}</a>
+    </div>
+    <p class="hero__micro">
+      Starter kits for restaurants, bars, real estate, legal, accounting, and support.
+    </p>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    padding-block: var(--space-5) var(--space-7);
+    overflow: hidden;
+  }
+
+  /* Desktop: tall fold, vertically centered */
+  @media (min-width: 768px) {
+    .hero {
+      min-height: calc(100svh - var(--nav-h));
+      align-items: center;
+      padding-block: var(--space-9) var(--space-10);
+    }
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 50%;
+    width: min(90vw, 36rem);
+    height: min(50vw, 28rem);
+    transform: translateX(-50%);
+    background: radial-gradient(circle, var(--signal-soft) 0%, transparent 68%);
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  @media (min-width: 768px) {
+    .hero::before {
+      inset: 10% auto auto 50%;
+      width: min(70vw, 36rem);
+      height: min(70vw, 36rem);
+      opacity: 0.85;
+    }
+  }
+
+  .hero__inner {
+    position: relative;
+    max-width: 42rem;
+  }
+
+  .hero__title {
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-display);
+    font-size: clamp(1.85rem, 7.5vw, 2.5rem);
+    font-weight: 400;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+  }
+
+  @media (min-width: 768px) {
+    .hero__title {
+      margin-bottom: var(--space-5);
+      font-size: var(--text-4xl);
+      line-height: var(--leading-tight);
+    }
+  }
+
+  .hero__sub {
+    margin: 0 0 var(--space-4);
+    max-width: 32rem;
+    font-size: var(--text-base);
+    line-height: var(--leading-snug);
+    color: var(--slate);
+  }
+
+  @media (min-width: 768px) {
+    .hero__sub {
+      margin-bottom: var(--space-7);
+      font-size: var(--text-lg);
+    }
+  }
+
+  .hero__sub em {
+    font-style: italic;
+    font-family: var(--font-display);
+    color: var(--ink);
+  }
+
+  /* Desktop CTAs; mobile uses floating button */
+  .hero__actions {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-5);
+    margin-bottom: var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .hero__actions {
+      display: flex;
+    }
+  }
+
+  .hero__handle {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--slate);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+
+  .hero__handle:hover {
+    color: var(--signal);
+  }
+
+  .hero__micro {
+    margin: 0;
+    max-width: 28rem;
+    font-size: var(--text-sm);
+    line-height: 1.45;
+    color: var(--slate);
+    opacity: 0.85;
+  }
+
+  @media (max-width: 767px) {
+    .hero__micro {
+      padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+</style>

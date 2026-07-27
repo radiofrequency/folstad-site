@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" fill="none" role="img" aria-label="Folstad AI">
+  <!-- Aperture mark -->
+  <g transform="translate(0,0)">
+    <circle
+      cx="32"
+      cy="32"
+      r="22"
+      stroke="#3D6B8C"
+      stroke-width="2.25"
+      stroke-linecap="round"
+      stroke-dasharray="118 20"
+      stroke-dashoffset="8"
+    />
+    <circle cx="32" cy="32" r="5.5" stroke="#3D6B8C" stroke-width="1.75" />
+    <circle cx="32" cy="32" r="1.6" fill="#3D6B8C" />
+  </g>
+  <!-- Wordmark -->
+  <text
+    x="72"
+    y="30"
+    font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+    font-size="18"
+    font-weight="500"
+    letter-spacing="0.28em"
+    fill="#1A1C22"
+  >FOLSTAD</text>
+  <text
+    x="72"
+    y="48"
+    font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+    font-size="10"
+    font-weight="400"
+    letter-spacing="0.42em"
+    fill="#5C6370"
+  >AI</text>
+</svg>

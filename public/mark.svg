@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Folstad AI">
+  <!-- Aperture mark: open ring with precise gap (sensor iris) -->
+  <circle
+    cx="32"
+    cy="32"
+    r="22"
+    stroke="#3D6B8C"
+    stroke-width="2.25"
+    stroke-linecap="round"
+    stroke-dasharray="118 20"
+    stroke-dashoffset="8"
+  />
+  <circle cx="32" cy="32" r="5.5" stroke="#3D6B8C" stroke-width="1.75" />
+  <circle cx="32" cy="32" r="1.6" fill="#3D6B8C" />
+</svg>

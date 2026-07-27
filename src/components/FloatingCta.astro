@@ -1,0 +1,65 @@
+---
+import { X_DM_URL, X_HANDLE } from "../lib/links";
+---
+
+<a
+  class="float-cta"
+  href={X_DM_URL}
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label={`Message ${X_HANDLE} on X`}
+>
+  <span class="float-cta__label">Message on X</span>
+  <span class="float-cta__handle">{X_HANDLE}</span>
+</a>
+
+<style>
+  .float-cta {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .float-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      position: fixed;
+      z-index: 200;
+      left: max(1rem, env(safe-area-inset-left));
+      right: max(1rem, env(safe-area-inset-right));
+      bottom: max(1rem, env(safe-area-inset-bottom));
+      min-height: 3.25rem;
+      padding: 0.85rem 1.25rem;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      border: 0;
+      box-shadow: 0 8px 28px rgba(26, 28, 34, 0.18);
+      transition: background var(--duration) var(--ease), transform var(--duration) var(--ease);
+    }
+
+    .float-cta:hover,
+    .float-cta:focus-visible {
+      color: var(--paper);
+      background: var(--signal);
+      text-decoration: none;
+    }
+
+    .float-cta:active {
+      transform: scale(0.98);
+    }
+
+    .float-cta__handle {
+      font-family: var(--font-mono);
+      font-size: 0.8em;
+      font-weight: 400;
+      opacity: 0.75;
+      letter-spacing: 0.02em;
+    }
+  }
+</style>

@@ -1,0 +1,143 @@
+---
+const domains = [
+  { name: "Email processing", outcome: "Triage, draft, route, archive" },
+  { name: "Website usage", outcome: "Research, form handling, monitoring" },
+  { name: "Data analysis", outcome: "Reports, anomaly flags, ops insight" },
+  { name: "Social media", outcome: "Drafting, scheduling, voice consistency" },
+  { name: "Customer support", outcome: "First-line agents, escalation paths" },
+  { name: "Legal", outcome: "Document assist, intake, research support" },
+  { name: "Accounting", outcome: "Bookkeeping assist, reconciliation support" },
+  { name: "Project management", outcome: "Status, follow-ups, task hygiene" },
+  { name: "Security", outcome: "Monitoring assist, policy workflows" },
+];
+---
+
+<section class="section" id="how-we-do-it" aria-labelledby="how-title">
+  <div class="wrap reveal">
+    <span class="section-label">How we do it</span>
+    <h2 id="how-title" class="section-title">Custom AI agents for your business.</h2>
+    <p class="section-lede">
+      Built on your data, your workflows, and your tools — not a generic chatbot drop-in. Agents that
+      operate inside the processes you already run.
+    </p>
+
+    <div class="pillars">
+      <div class="pillars__item">
+        <span class="pillars__label">Your data</span>
+        <p class="pillars__text">Grounded in the documents, inboxes, and systems you already trust.</p>
+      </div>
+      <div class="pillars__item">
+        <span class="pillars__label">Your workflows</span>
+        <p class="pillars__text">Mapped to real handoffs — not abstract “AI features.”</p>
+      </div>
+      <div class="pillars__item">
+        <span class="pillars__label">Your tools</span>
+        <p class="pillars__text">Wired into email, web, support, books, and the stack you use daily.</p>
+      </div>
+    </div>
+
+    <h3 class="map-title">Capability map</h3>
+    <ul class="map">
+      {
+        domains.map((d) => (
+          <li class="map__row">
+            <span class="map__name">{d.name}</span>
+            <span class="map__outcome">{d.outcome}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="map-note">
+      Legal and accounting agents assist workflows — they do not replace licensed professional advice.
+    </p>
+  </div>
+</section>
+
+<style>
+  .pillars {
+    display: grid;
+    gap: var(--space-5);
+    margin: var(--space-8) 0 var(--space-9);
+    padding: var(--space-6) 0;
+    border-top: 1px solid var(--ghost);
+    border-bottom: 1px solid var(--ghost);
+  }
+
+  @media (min-width: 720px) {
+    .pillars {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+    }
+  }
+
+  .pillars__label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  .pillars__text {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--slate);
+    max-width: 22ch;
+  }
+
+  .map-title {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .map {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .map__row {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--ghost);
+  }
+
+  .map__row:last-child {
+    border-bottom: 1px solid var(--ghost);
+  }
+
+  @media (min-width: 640px) {
+    .map__row {
+      grid-template-columns: minmax(10rem, 14rem) 1fr;
+      gap: var(--space-6);
+      align-items: baseline;
+    }
+  }
+
+  .map__name {
+    font-size: var(--text-base);
+    color: var(--ink);
+  }
+
+  .map__outcome {
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+
+  .map-note {
+    margin: var(--space-5) 0 0;
+    font-size: var(--text-xs);
+    color: var(--slate);
+    max-width: 40rem;
+    opacity: 0.9;
+  }
+</style>

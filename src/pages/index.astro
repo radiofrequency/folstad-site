@@ -1,0 +1,28 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Nav from "../components/Nav.astro";
+import Hero from "../components/Hero.astro";
+import WhatWeDo from "../components/WhatWeDo.astro";
+import HowWeDoIt from "../components/HowWeDoIt.astro";
+import StarterKits from "../components/StarterKits.astro";
+import Pricing from "../components/Pricing.astro";
+import Contact from "../components/Contact.astro";
+import CompanyAddress from "../components/CompanyAddress.astro";
+import FloatingCta from "../components/FloatingCta.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<BaseLayout>
+  <Nav />
+  <main id="main">
+    <Hero />
+    <WhatWeDo />
+    <HowWeDoIt />
+    <StarterKits />
+    <Pricing />
+    <Contact />
+    <CompanyAddress />
+  </main>
+  <FloatingCta />
+  <Footer />
+</BaseLayout>
