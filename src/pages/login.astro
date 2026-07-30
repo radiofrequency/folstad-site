@@ -81,6 +81,12 @@ import "../styles/buzz-app.css";
       });
     }
 
+    // Prefer pre-filled email after a successful reset
+    if (params.get("reset") === "1" && status) {
+      status.hidden = false;
+      status.textContent = "Password updated — sign in with your new password.";
+    }
+
     document.querySelector("[data-login-form]")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target as HTMLFormElement;
