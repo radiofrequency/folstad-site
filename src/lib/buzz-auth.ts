@@ -94,7 +94,7 @@ export function safeReturnPath(raw: string | null | undefined, fallback = "/dash
   }
   if (!value.startsWith("/") || value.startsWith("//")) return fb;
   // Never bounce back to auth screens as the "destination"
-  if (/^\/(login|signup|confirm)(\/|\?|#|$)/i.test(value)) return fb;
+  if (/^\/(login|signup|confirm|forgot-password)(\/|\?|#|$)/i.test(value)) return fb;
   return value;
 }
 
@@ -281,7 +281,10 @@ export async function resendConfirmationCode(email: string): Promise<void> {
   }
 }
 
-function friendlyCognitoError(err: unknown, context: "confirm" | "resend" | "signin"): string {
+function friendlyCognitoError(
+  err: unknown,
+  context: "confirm" | "resend" | "signin" | "forgot" | "reset",
+): string {
   const code = String((err as { code?: string; name?: string }).code ?? (err as { name?: string }).name ?? "");
   const msg = err instanceof Error ? err.message : "Request failed";
 
@@ -292,14 +295,24 @@ function friendlyCognitoError(err: unknown, context: "confirm" | "resend" | "sig
     if (context === "confirm") {
       return "This code is expired or already used. If you already verified, sign in. Otherwise resend a new code.";
     }
+    if (context === "reset") {
+      return "This reset code expired. Request a new one.";
+    }
     return "Code expired — request a new one.";
   }
   if (code === "UserNotFoundException") {
+    // Don’t leak account existence on forgot-password
+    if (context === "forgot") {
+      return "If that email is registered, we sent a reset code.";
+    }
     return "No account found for that email. Sign up first.";
   }
   if (code === "NotAuthorizedException") {
     if (/confirmed/i.test(msg) || /already/i.test(msg)) {
       return "This account is already verified — sign in.";
+    }
+    if (context === "forgot" || context === "reset") {
+      return "Password reset isn’t available for this account. Try signing up or contact support.";
     }
     return msg || "Not authorized.";
   }
@@ -316,9 +329,91 @@ function friendlyCognitoError(err: unknown, context: "confirm" | "resend" | "sig
     return "Email not verified yet. Enter the code from your email, or resend it.";
   }
   if (code === "InvalidPasswordException") {
-    return msg || "Password does not meet requirements.";
+    return msg || "Password does not meet requirements (min 8, upper, lower, number).";
+  }
+  if (code === "InvalidLambdaResponseException" || code === "UnexpectedLambdaException") {
+    return "Reset failed on the server. Try again in a moment.";
   }
   return msg || "Something went wrong.";
+}
+
+/**
+ * Start password reset — Cognito emails a code.
+ * Returns a generic message so we don’t leak whether the email exists.
+ */
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  email = email.trim().toLowerCase();
+  if (!email) throw new Error("Email is required");
+
+  const cfg = getCognitoConfig();
+  if (!cfg) {
+    const users = loadMockUsers();
+    const u = users.find((x) => x.email === email);
+    if (u) {
+      u.code = "123456";
+      saveMockUsers(users);
+      console.info("[buzz mock auth] password reset code:", "123456");
+    }
+    return { message: "If that email is registered, we sent a reset code (mock: 123456)." };
+  }
+
+  try {
+    await cognitoCall(cfg.region, "ForgotPassword", {
+      ClientId: cfg.clientId,
+      Username: email,
+    });
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    // Cognito may error on unknown users depending on client settings; stay generic.
+    if (code === "UserNotFoundException" || code === "InvalidParameterException") {
+      return { message: "If that email is registered, we sent a reset code." };
+    }
+    throw Object.assign(new Error(friendlyCognitoError(err, "forgot")), {
+      code,
+    });
+  }
+
+  return { message: "If that email is registered, we sent a reset code. Check your inbox (and spam)." };
+}
+
+/** Complete password reset with email code + new password. */
+export async function confirmForgotPassword(
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<void> {
+  email = email.trim().toLowerCase();
+  const normalized = normalizeCode(code);
+  if (!email) throw new Error("Email is required");
+  if (!normalized) throw new Error("Enter the reset code from your email.");
+  if (!newPassword || newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters.");
+  }
+
+  const cfg = getCognitoConfig();
+  if (!cfg) {
+    const users = loadMockUsers();
+    const u = users.find((x) => x.email === email);
+    if (!u) throw new Error("Unknown account");
+    if (normalized !== u.code) throw new Error("Invalid reset code (mock uses 123456)");
+    u.password = newPassword;
+    u.verified = true;
+    saveMockUsers(users);
+    return;
+  }
+
+  try {
+    await cognitoCall(cfg.region, "ConfirmForgotPassword", {
+      ClientId: cfg.clientId,
+      Username: email,
+      ConfirmationCode: normalized,
+      Password: newPassword,
+    });
+  } catch (err) {
+    throw Object.assign(new Error(friendlyCognitoError(err, "reset")), {
+      code: (err as { code?: string }).code,
+    });
+  }
 }
 
 export async function signIn(email: string, password: string): Promise<AuthSession> {

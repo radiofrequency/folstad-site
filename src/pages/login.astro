@@ -31,6 +31,9 @@ import "../styles/buzz-app.css";
             minlength="8"
           />
         </label>
+        <p class="bz-hint" style="margin-top: -0.5rem">
+          <a href={`${import.meta.env.BASE_URL}forgot-password`} data-forgot-link>Forgot password?</a>
+        </p>
         <p class="bz-error" data-error hidden></p>
         <p class="bz-hint" data-status hidden style="color: var(--signal)"></p>
         <div class="bz-actions">
@@ -70,6 +73,17 @@ import "../styles/buzz-app.css";
     const emailInput = document.querySelector<HTMLInputElement>("[data-email]");
     if (emailInput && params.get("email")) {
       emailInput.value = params.get("email")!;
+    }
+
+    const forgot = document.querySelector<HTMLAnchorElement>("[data-forgot-link]");
+    if (forgot) {
+      forgot.addEventListener("click", (e) => {
+        const email = emailInput?.value?.trim();
+        if (!email) return;
+        e.preventDefault();
+        const q = new URLSearchParams({ email });
+        window.location.href = `${appPath("/forgot-password")}?${q}`;
+      });
     }
 
     document.querySelector("[data-login-form]")?.addEventListener("submit", async (e) => {
