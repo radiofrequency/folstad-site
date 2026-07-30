@@ -9,10 +9,14 @@ import { getSession } from "./buzz-auth";
 
 const MOCK_PROJECTS_KEY = "buzz-mock-projects";
 
+/** Production API Gateway (public). Override with PUBLIC_BUZZ_API_URL. */
+const DEFAULT_API_URL = "https://ej7p79nn47.execute-api.us-west-2.amazonaws.com/v1";
+
 function apiBase(): string | null {
   const u = import.meta.env.PUBLIC_BUZZ_API_URL as string | undefined;
-  if (!u || u === "mock") return null;
-  return u.replace(/\/$/, "");
+  if (u === "mock" || u === "off") return null;
+  const base = (u && u.trim()) || DEFAULT_API_URL;
+  return base.replace(/\/$/, "");
 }
 
 function authHeader(): HeadersInit {

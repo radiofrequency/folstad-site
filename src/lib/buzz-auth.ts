@@ -21,11 +21,23 @@ export type CognitoConfig = {
   region: string;
 };
 
+/** Public SPA config (safe to ship). Override with PUBLIC_* env for other stages. */
+const DEFAULT_COGNITO = {
+  userPoolId: "us-west-2_MIDcSvkwq",
+  clientId: "5klcs2rg7lmfgjggsl7bo2llkm",
+  region: "us-west-2",
+};
+
 export function getCognitoConfig(): CognitoConfig | null {
-  const userPoolId = import.meta.env.PUBLIC_COGNITO_USER_POOL_ID as string | undefined;
-  const clientId = import.meta.env.PUBLIC_COGNITO_CLIENT_ID as string | undefined;
+  // Explicit mock: PUBLIC_COGNITO_USER_POOL_ID=mock
+  const userPoolIdRaw = import.meta.env.PUBLIC_COGNITO_USER_POOL_ID as string | undefined;
+  if (userPoolIdRaw === "mock" || userPoolIdRaw === "off") return null;
+
+  const userPoolId = userPoolIdRaw || DEFAULT_COGNITO.userPoolId;
+  const clientId =
+    (import.meta.env.PUBLIC_COGNITO_CLIENT_ID as string | undefined) || DEFAULT_COGNITO.clientId;
   const region =
-    (import.meta.env.PUBLIC_COGNITO_REGION as string | undefined) || "us-west-2";
+    (import.meta.env.PUBLIC_COGNITO_REGION as string | undefined) || DEFAULT_COGNITO.region;
   if (!userPoolId || !clientId) return null;
   return { userPoolId, clientId, region };
 }
