@@ -1,7 +1,7 @@
 import { slugify } from "../lib/slug";
 import type { BuzzBotTemplate, BuzzSme } from "../data/buzz-sme";
 import { getSession, requireSession } from "../lib/buzz-auth";
-import { createProject, getProject, isMockApi } from "../lib/buzz-api";
+import { createProject, getProject } from "../lib/buzz-api";
 
 type Bot = {
   id: string;
@@ -162,7 +162,7 @@ if (root) {
         <p class="buzz__hint" style="margin:0 0 0.5rem">Signed in as</p>
         <p style="margin:0;font-family:var(--font-display);font-size:var(--text-xl)">${esc(session.email)}</p>
         <p class="buzz__hint" style="margin:0.75rem 0 0">
-          ${isMockApi() ? "Mock API (local)" : "Live API"} · Cognito-verified account
+          Verified account · private hosting included
         </p>`;
       setError("account", null);
     } else {

@@ -1,6 +1,5 @@
 /**
- * Cognito auth client (browser-native fetch to Cognito IdP API).
- * Falls back to local mock when PUBLIC_COGNITO_* env is unset.
+ * Auth client via AWS Cognito IdP JSON API (email sign-up / sign-in / reset).
  */
 
 export type AuthSession = {
@@ -13,37 +12,37 @@ export type AuthSession = {
 };
 
 const SESSION_KEY = "buzz-auth-session";
-const MOCK_USERS_KEY = "buzz-mock-users";
 
-export type CognitoConfig = {
+export type AuthConfig = {
   userPoolId: string;
   clientId: string;
   region: string;
 };
 
-/** Public SPA config (safe to ship). Override with PUBLIC_* env for other stages. */
-const DEFAULT_COGNITO = {
+/** Public SPA config (safe to ship). Override with PUBLIC_* env if needed. */
+const DEFAULT_AUTH = {
   userPoolId: "us-west-2_MIDcSvkwq",
   clientId: "5klcs2rg7lmfgjggsl7bo2llkm",
   region: "us-west-2",
 };
 
-export function getCognitoConfig(): CognitoConfig | null {
-  // Explicit mock: PUBLIC_COGNITO_USER_POOL_ID=mock
-  const userPoolIdRaw = import.meta.env.PUBLIC_COGNITO_USER_POOL_ID as string | undefined;
-  if (userPoolIdRaw === "mock" || userPoolIdRaw === "off") return null;
-
-  const userPoolId = userPoolIdRaw || DEFAULT_COGNITO.userPoolId;
-  const clientId =
-    (import.meta.env.PUBLIC_COGNITO_CLIENT_ID as string | undefined) || DEFAULT_COGNITO.clientId;
-  const region =
-    (import.meta.env.PUBLIC_COGNITO_REGION as string | undefined) || DEFAULT_COGNITO.region;
-  if (!userPoolId || !clientId) return null;
-  return { userPoolId, clientId, region };
+export function getAuthConfig(): AuthConfig {
+  return {
+    userPoolId:
+      (import.meta.env.PUBLIC_COGNITO_USER_POOL_ID as string | undefined) ||
+      DEFAULT_AUTH.userPoolId,
+    clientId:
+      (import.meta.env.PUBLIC_COGNITO_CLIENT_ID as string | undefined) ||
+      DEFAULT_AUTH.clientId,
+    region:
+      (import.meta.env.PUBLIC_COGNITO_REGION as string | undefined) ||
+      DEFAULT_AUTH.region,
+  };
 }
 
-export function isMockAuth(): boolean {
-  return getCognitoConfig() === null;
+/** @deprecated use getAuthConfig */
+export function getCognitoConfig(): AuthConfig {
+  return getAuthConfig();
 }
 
 export function getSession(): AuthSession | null {
@@ -82,7 +81,6 @@ export function safeReturnPath(raw: string | null | undefined, fallback = "/dash
   } catch {
     /* keep raw */
   }
-  // Absolute URLs → path only if same origin
   if (/^https?:\/\//i.test(value)) {
     try {
       const u = new URL(value);
@@ -93,7 +91,6 @@ export function safeReturnPath(raw: string | null | undefined, fallback = "/dash
     }
   }
   if (!value.startsWith("/") || value.startsWith("//")) return fb;
-  // Never bounce back to auth screens as the "destination"
   if (/^\/(login|signup|confirm|forgot-password)(\/|\?|#|$)/i.test(value)) return fb;
   return value;
 }
@@ -113,15 +110,15 @@ export function requireSession(nextPath: string): AuthSession | null {
   return null;
 }
 
-// ——— Cognito IdP over fetch (no amazon-cognito-identity-js) ———
+// ——— IdP over fetch ———
 
-type CognitoErrorBody = {
+type IdpErrorBody = {
   __type?: string;
   message?: string;
   Message?: string;
 };
 
-async function cognitoCall<T>(
+async function idpCall<T>(
   region: string,
   target: string,
   body: Record<string, unknown>,
@@ -140,11 +137,11 @@ async function cognitoCall<T>(
   try {
     data = text ? JSON.parse(text) : {};
   } catch {
-    throw new Error(text || `Cognito error (${res.status})`);
+    throw new Error(text || `Auth error (${res.status})`);
   }
 
   if (!res.ok) {
-    const err = data as CognitoErrorBody;
+    const err = data as IdpErrorBody;
     const type = (err.__type ?? "").split("#").pop() ?? "Error";
     const msg = err.message ?? err.Message ?? type;
     throw Object.assign(new Error(msg), { code: type, name: type });
@@ -160,136 +157,22 @@ function decodeJwtPayload(token: string): Record<string, unknown> {
   return JSON.parse(json) as Record<string, unknown>;
 }
 
-// ——— Mock ———
-
-type MockUser = {
-  email: string;
-  password: string;
-  sub: string;
-  verified: boolean;
-  code: string;
-};
-
-function loadMockUsers(): MockUser[] {
-  try {
-    return JSON.parse(localStorage.getItem(MOCK_USERS_KEY) ?? "[]") as MockUser[];
-  } catch {
-    return [];
-  }
-}
-
-function saveMockUsers(users: MockUser[]) {
-  localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
-}
-
-function mockToken(sub: string, email: string): string {
-  return `mock:${sub}:${email}`;
-}
-
-// ——— Public API ———
-
-export async function signUp(email: string, password: string): Promise<{ needsConfirm: boolean }> {
-  email = email.trim().toLowerCase();
-  if (!email || !password) throw new Error("Email and password required");
-
-  const cfg = getCognitoConfig();
-  if (!cfg) {
-    const users = loadMockUsers();
-    if (users.some((u) => u.email === email)) throw new Error("Account already exists");
-    users.push({
-      email,
-      password,
-      sub: crypto.randomUUID(),
-      verified: false,
-      code: "123456",
-    });
-    saveMockUsers(users);
-    console.info("[buzz mock auth] verification code:", "123456");
-    return { needsConfirm: true };
-  }
-
-  await cognitoCall(cfg.region, "SignUp", {
-    ClientId: cfg.clientId,
-    Username: email,
-    Password: password,
-    UserAttributes: [{ Name: "email", Value: email }],
-  });
-  return { needsConfirm: true };
-}
-
 /** Normalize verification codes (strip spaces/dashes from email copy-paste). */
 function normalizeCode(code: string): string {
   return code.replace(/[\s-]/g, "").trim();
 }
 
-export async function confirmSignUp(email: string, code: string): Promise<void> {
-  email = email.trim().toLowerCase();
-  const normalized = normalizeCode(code);
-  if (!normalized) throw new Error("Enter the verification code from your email.");
-
-  const cfg = getCognitoConfig();
-
-  if (!cfg) {
-    const users = loadMockUsers();
-    const u = users.find((x) => x.email === email);
-    if (!u) throw new Error("Unknown account");
-    if (normalized !== u.code) throw new Error("Invalid verification code (mock uses 123456)");
-    u.verified = true;
-    saveMockUsers(users);
-    return;
-  }
-
-  try {
-    await cognitoCall(cfg.region, "ConfirmSignUp", {
-      ClientId: cfg.clientId,
-      Username: email,
-      ConfirmationCode: normalized,
-    });
-  } catch (err) {
-    throw Object.assign(new Error(friendlyCognitoError(err, "confirm")), {
-      code: (err as { code?: string }).code,
-    });
-  }
-}
-
-/** Resend the signup verification email. */
-export async function resendConfirmationCode(email: string): Promise<void> {
-  email = email.trim().toLowerCase();
-  if (!email) throw new Error("Email is required");
-
-  const cfg = getCognitoConfig();
-  if (!cfg) {
-    const users = loadMockUsers();
-    const u = users.find((x) => x.email === email);
-    if (!u) throw new Error("Unknown account — sign up first");
-    if (u.verified) throw new Error("Already verified — sign in instead");
-    u.code = "123456";
-    saveMockUsers(users);
-    console.info("[buzz mock auth] verification code:", "123456");
-    return;
-  }
-
-  try {
-    await cognitoCall(cfg.region, "ResendConfirmationCode", {
-      ClientId: cfg.clientId,
-      Username: email,
-    });
-  } catch (err) {
-    throw Object.assign(new Error(friendlyCognitoError(err, "resend")), {
-      code: (err as { code?: string }).code,
-    });
-  }
-}
-
-function friendlyCognitoError(
+function friendlyAuthError(
   err: unknown,
-  context: "confirm" | "resend" | "signin" | "forgot" | "reset",
+  context: "confirm" | "resend" | "signin" | "forgot" | "reset" | "signup",
 ): string {
-  const code = String((err as { code?: string; name?: string }).code ?? (err as { name?: string }).name ?? "");
+  const code = String(
+    (err as { code?: string; name?: string }).code ?? (err as { name?: string }).name ?? "",
+  );
   const msg = err instanceof Error ? err.message : "Request failed";
 
   if (code === "CodeMismatchException") {
-    return "That code doesn’t match. Check the latest email and try again (digits only).";
+    return "That code doesn’t match. Check the latest email and try again.";
   }
   if (code === "ExpiredCodeException") {
     if (context === "confirm") {
@@ -301,7 +184,6 @@ function friendlyCognitoError(
     return "Code expired — request a new one.";
   }
   if (code === "UserNotFoundException") {
-    // Don’t leak account existence on forgot-password
     if (context === "forgot") {
       return "If that email is registered, we sent a reset code.";
     }
@@ -312,7 +194,10 @@ function friendlyCognitoError(
       return "This account is already verified — sign in.";
     }
     if (context === "forgot" || context === "reset") {
-      return "Password reset isn’t available for this account. Try signing up or contact support.";
+      return "Password reset isn’t available for this account. Try signing up again.";
+    }
+    if (context === "signin") {
+      return "Incorrect email or password.";
     }
     return msg || "Not authorized.";
   }
@@ -323,7 +208,7 @@ function friendlyCognitoError(
     return "Too many attempts. Wait a minute and try again.";
   }
   if (code === "UsernameExistsException") {
-    return "An account with this email already exists. Sign in or confirm if pending.";
+    return "An account with this email already exists. Sign in or reset your password.";
   }
   if (code === "UserNotConfirmedException") {
     return "Email not verified yet. Enter the code from your email, or resend it.";
@@ -331,52 +216,88 @@ function friendlyCognitoError(
   if (code === "InvalidPasswordException") {
     return msg || "Password does not meet requirements (min 8, upper, lower, number).";
   }
-  if (code === "InvalidLambdaResponseException" || code === "UnexpectedLambdaException") {
-    return "Reset failed on the server. Try again in a moment.";
-  }
   return msg || "Something went wrong.";
 }
 
-/**
- * Start password reset — Cognito emails a code.
- * Returns a generic message so we don’t leak whether the email exists.
- */
+export async function signUp(email: string, password: string): Promise<{ needsConfirm: boolean }> {
+  email = email.trim().toLowerCase();
+  if (!email || !password) throw new Error("Email and password required");
+
+  const cfg = getAuthConfig();
+  try {
+    await idpCall(cfg.region, "SignUp", {
+      ClientId: cfg.clientId,
+      Username: email,
+      Password: password,
+      UserAttributes: [{ Name: "email", Value: email }],
+    });
+  } catch (err) {
+    throw Object.assign(new Error(friendlyAuthError(err, "signup")), {
+      code: (err as { code?: string }).code,
+    });
+  }
+  return { needsConfirm: true };
+}
+
+export async function confirmSignUp(email: string, code: string): Promise<void> {
+  email = email.trim().toLowerCase();
+  const normalized = normalizeCode(code);
+  if (!normalized) throw new Error("Enter the verification code from your email.");
+
+  const cfg = getAuthConfig();
+  try {
+    await idpCall(cfg.region, "ConfirmSignUp", {
+      ClientId: cfg.clientId,
+      Username: email,
+      ConfirmationCode: normalized,
+    });
+  } catch (err) {
+    throw Object.assign(new Error(friendlyAuthError(err, "confirm")), {
+      code: (err as { code?: string }).code,
+    });
+  }
+}
+
+export async function resendConfirmationCode(email: string): Promise<void> {
+  email = email.trim().toLowerCase();
+  if (!email) throw new Error("Email is required");
+
+  const cfg = getAuthConfig();
+  try {
+    await idpCall(cfg.region, "ResendConfirmationCode", {
+      ClientId: cfg.clientId,
+      Username: email,
+    });
+  } catch (err) {
+    throw Object.assign(new Error(friendlyAuthError(err, "resend")), {
+      code: (err as { code?: string }).code,
+    });
+  }
+}
+
 export async function forgotPassword(email: string): Promise<{ message: string }> {
   email = email.trim().toLowerCase();
   if (!email) throw new Error("Email is required");
 
-  const cfg = getCognitoConfig();
-  if (!cfg) {
-    const users = loadMockUsers();
-    const u = users.find((x) => x.email === email);
-    if (u) {
-      u.code = "123456";
-      saveMockUsers(users);
-      console.info("[buzz mock auth] password reset code:", "123456");
-    }
-    return { message: "If that email is registered, we sent a reset code (mock: 123456)." };
-  }
-
+  const cfg = getAuthConfig();
   try {
-    await cognitoCall(cfg.region, "ForgotPassword", {
+    await idpCall(cfg.region, "ForgotPassword", {
       ClientId: cfg.clientId,
       Username: email,
     });
   } catch (err) {
     const code = (err as { code?: string }).code;
-    // Cognito may error on unknown users depending on client settings; stay generic.
     if (code === "UserNotFoundException" || code === "InvalidParameterException") {
       return { message: "If that email is registered, we sent a reset code." };
     }
-    throw Object.assign(new Error(friendlyCognitoError(err, "forgot")), {
-      code,
-    });
+    throw Object.assign(new Error(friendlyAuthError(err, "forgot")), { code });
   }
 
-  return { message: "If that email is registered, we sent a reset code. Check your inbox (and spam)." };
+  return {
+    message: "If that email is registered, we sent a reset code. Check your inbox (and spam).",
+  };
 }
 
-/** Complete password reset with email code + new password. */
 export async function confirmForgotPassword(
   email: string,
   code: string,
@@ -390,27 +311,16 @@ export async function confirmForgotPassword(
     throw new Error("Password must be at least 8 characters.");
   }
 
-  const cfg = getCognitoConfig();
-  if (!cfg) {
-    const users = loadMockUsers();
-    const u = users.find((x) => x.email === email);
-    if (!u) throw new Error("Unknown account");
-    if (normalized !== u.code) throw new Error("Invalid reset code (mock uses 123456)");
-    u.password = newPassword;
-    u.verified = true;
-    saveMockUsers(users);
-    return;
-  }
-
+  const cfg = getAuthConfig();
   try {
-    await cognitoCall(cfg.region, "ConfirmForgotPassword", {
+    await idpCall(cfg.region, "ConfirmForgotPassword", {
       ClientId: cfg.clientId,
       Username: email,
       ConfirmationCode: normalized,
       Password: newPassword,
     });
   } catch (err) {
-    throw Object.assign(new Error(friendlyCognitoError(err, "reset")), {
+    throw Object.assign(new Error(friendlyAuthError(err, "reset")), {
       code: (err as { code?: string }).code,
     });
   }
@@ -418,36 +328,10 @@ export async function confirmForgotPassword(
 
 export async function signIn(email: string, password: string): Promise<AuthSession> {
   email = email.trim().toLowerCase();
-  const cfg = getCognitoConfig();
-
-  if (!cfg) {
-    const users = loadMockUsers();
-    const u = users.find((x) => x.email === email && x.password === password);
-    if (!u) throw new Error("Incorrect email or password");
-    if (!u.verified) {
-      const pending: AuthSession = {
-        sub: u.sub,
-        email: u.email,
-        emailVerified: false,
-        accessToken: mockToken(u.sub, u.email),
-        idToken: mockToken(u.sub, u.email),
-      };
-      setSession(pending);
-      throw Object.assign(new Error("Email not verified"), { code: "EMAIL_UNVERIFIED" });
-    }
-    const session: AuthSession = {
-      sub: u.sub,
-      email: u.email,
-      emailVerified: true,
-      accessToken: mockToken(u.sub, u.email),
-      idToken: mockToken(u.sub, u.email),
-    };
-    setSession(session);
-    return session;
-  }
+  const cfg = getAuthConfig();
 
   try {
-    const result = await cognitoCall<{
+    const result = await idpCall<{
       AuthenticationResult?: {
         AccessToken?: string;
         IdToken?: string;
@@ -495,7 +379,7 @@ export async function signIn(email: string, password: string): Promise<AuthSessi
     if (code === "NotAuthorizedException") {
       throw new Error("Incorrect email or password.");
     }
-    throw Object.assign(new Error(friendlyCognitoError(err, "signin")), {
+    throw Object.assign(new Error(friendlyAuthError(err, "signin")), {
       code: (err as { code?: string }).code,
     });
   }
@@ -503,8 +387,4 @@ export async function signIn(email: string, password: string): Promise<AuthSessi
 
 export function signOut() {
   setSession(null);
-}
-
-export function authModeLabel(): string {
-  return isMockAuth() ? "Local mock auth (code 123456)" : "AWS Cognito";
 }

@@ -14,10 +14,9 @@ import "../styles/buzz-app.css";
       <span class="section-label">Account</span>
       <h1 class="bz-title">Verify your email</h1>
       <p class="bz-lede">
-        Enter the 6-digit code from AWS Cognito. If you already verified, skip this and
+        Enter the verification code we emailed you. If you already verified, skip this and
         <a href={`${import.meta.env.BASE_URL}login`}>sign in</a>.
       </p>
-      <p class="bz-mode" data-auth-mode></p>
       <form data-confirm-form>
         <label class="bz-field">
           <span class="bz-label">Email</span>
@@ -33,7 +32,7 @@ import "../styles/buzz-app.css";
             inputmode="numeric"
             autocomplete="one-time-code"
             pattern="[0-9\\s-]*"
-            placeholder="e.g. 123456"
+            placeholder="6-digit code"
             data-code
           />
         </label>
@@ -50,14 +49,10 @@ import "../styles/buzz-app.css";
   <script>
     import {
       appPath,
-      authModeLabel,
       confirmSignUp,
       resendConfirmationCode,
       safeReturnPath,
     } from "../lib/buzz-auth";
-
-    const mode = document.querySelector("[data-auth-mode]");
-    if (mode) mode.textContent = authModeLabel();
 
     const params = new URLSearchParams(window.location.search);
     const next = safeReturnPath(params.get("next"), "/dashboard");

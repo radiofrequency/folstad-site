@@ -13,8 +13,7 @@ import "../styles/buzz-app.css";
     <main class="bz-app__main" id="main">
       <span class="section-label">Account</span>
       <h1 class="bz-title">Sign in</h1>
-      <p class="bz-lede">Use the email you verified with Cognito.</p>
-      <p class="bz-mode" data-auth-mode></p>
+      <p class="bz-lede">Sign in with the email you verified when you created your account.</p>
       <form class="bz-form" data-login-form>
         <label class="bz-field">
           <span class="bz-label">Email</span>
@@ -49,14 +48,10 @@ import "../styles/buzz-app.css";
   <script>
     import {
       appPath,
-      authModeLabel,
       getSession,
       safeReturnPath,
       signIn,
     } from "../lib/buzz-auth";
-
-    const mode = document.querySelector("[data-auth-mode]");
-    if (mode) mode.textContent = authModeLabel();
 
     const params = new URLSearchParams(window.location.search);
     const next = safeReturnPath(params.get("next"), "/dashboard");
