@@ -1,5 +1,8 @@
 ---
 import { X_DM_URL, X_HANDLE } from "../lib/links";
+
+const base = import.meta.env.BASE_URL;
+const home = base.endsWith("/") ? base : `${base}/`;
 ---
 
 <section class="hero" id="hero" aria-labelledby="hero-title">
@@ -19,7 +22,8 @@ import { X_DM_URL, X_HANDLE } from "../lib/links";
       <a class="hero__handle" href={X_DM_URL} target="_blank" rel="noopener noreferrer">{X_HANDLE}</a>
     </div>
     <p class="hero__micro">
-      Starter kits for restaurants, bars, real estate, legal, accounting, and support.
+      First path: <a href={`${home}restaurant`}>Restaurant Pilot</a> — also kits for bars, real estate, legal,
+      accounting, and support.
     </p>
   </div>
 </section>

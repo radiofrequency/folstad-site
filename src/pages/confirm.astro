@@ -1,0 +1,122 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BuzzChrome from "../components/buzz/BuzzChrome.astro";
+import "../styles/buzz-app.css";
+---
+
+<BaseLayout
+  title="Verify email · Buzz | Folstad AI"
+  description="Enter the verification code sent to your email."
+>
+  <div class="bz-app">
+    <BuzzChrome active="auth" />
+    <main class="bz-app__main" id="main">
+      <span class="section-label">Account</span>
+      <h1 class="bz-title">Verify your email</h1>
+      <p class="bz-lede">
+        Enter the 6-digit code from AWS Cognito. If you already verified, skip this and
+        <a href={`${import.meta.env.BASE_URL}login`}>sign in</a>.
+      </p>
+      <p class="bz-mode" data-auth-mode></p>
+      <form data-confirm-form>
+        <label class="bz-field">
+          <span class="bz-label">Email</span>
+          <input class="bz-input" type="email" name="email" required autocomplete="username" data-email />
+        </label>
+        <label class="bz-field">
+          <span class="bz-label">Verification code</span>
+          <input
+            class="bz-input"
+            type="text"
+            name="code"
+            required
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            pattern="[0-9\\s-]*"
+            placeholder="e.g. 123456"
+            data-code
+          />
+        </label>
+        <p class="bz-error" data-error hidden></p>
+        <p class="bz-hint" data-success hidden style="color: var(--signal)"></p>
+        <div class="bz-actions">
+          <button class="btn" type="submit" data-submit>Confirm <span class="btn__arrow" aria-hidden="true">→</span></button>
+          <button class="btn btn--ghost" type="button" data-resend>Resend code</button>
+          <a class="btn btn--ghost" href={`${import.meta.env.BASE_URL}login`}>Sign in</a>
+        </div>
+      </form>
+    </main>
+  </div>
+  <script>
+    import {
+      appPath,
+      authModeLabel,
+      confirmSignUp,
+      resendConfirmationCode,
+      safeReturnPath,
+    } from "../lib/buzz-auth";
+
+    const mode = document.querySelector("[data-auth-mode]");
+    if (mode) mode.textContent = authModeLabel();
+
+    const params = new URLSearchParams(window.location.search);
+    const next = safeReturnPath(params.get("next"), "/dashboard");
+    const emailInput = document.querySelector<HTMLInputElement>("[data-email]");
+    if (emailInput && params.get("email")) emailInput.value = params.get("email")!;
+
+    const err = document.querySelector<HTMLElement>("[data-error]");
+    const ok = document.querySelector<HTMLElement>("[data-success]");
+    const form = document.querySelector<HTMLFormElement>("[data-confirm-form]");
+    const submitBtn = document.querySelector<HTMLButtonElement>("[data-submit]");
+
+    function showError(msg: string | null) {
+      if (!err) return;
+      if (msg) {
+        err.hidden = false;
+        err.textContent = msg;
+      } else {
+        err.hidden = true;
+        err.textContent = "";
+      }
+      if (ok) ok.hidden = true;
+    }
+
+    function showOk(msg: string) {
+      if (ok) {
+        ok.hidden = false;
+        ok.textContent = msg;
+      }
+      if (err) err.hidden = true;
+    }
+
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const email = String(fd.get("email"));
+      try {
+        showError(null);
+        if (submitBtn) submitBtn.disabled = true;
+        await confirmSignUp(email, String(fd.get("code")));
+        showOk("Email verified. Redirecting to sign in…");
+        const q = new URLSearchParams({ next, email });
+        window.location.replace(`${appPath("/login")}?${q}`);
+      } catch (ex) {
+        const msg = ex instanceof Error ? ex.message : "Confirmation failed";
+        showError(msg);
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+
+    document.querySelector("[data-resend]")?.addEventListener("click", async () => {
+      const email = emailInput?.value?.trim() ?? "";
+      try {
+        showError(null);
+        await resendConfirmationCode(email);
+        showOk("A new code was sent. Check your inbox (and spam).");
+      } catch (ex) {
+        showError(ex instanceof Error ? ex.message : "Could not resend code");
+      }
+    });
+  </script>
+</BaseLayout>

@@ -22,3 +22,11 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Buzz infra / packages
+infra/cdk.out/
+infra/cdk-outputs.json
+infra/node_modules/
+packages/*/node_modules/
+packages/*/dist/
+*.bak

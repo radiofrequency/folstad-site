@@ -1,0 +1,17 @@
+{
+  "name": "@folstad/buzz-runtime",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node dist/server.js",
+    "build": "esbuild src/server.ts --bundle --platform=node --target=node22 --outfile=dist/server.js --format=cjs",
+    "dev": "node --import tsx src/server.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "esbuild": "^0.25.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

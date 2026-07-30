@@ -36,6 +36,12 @@ jobs:
           # Project site only: set repo variable BASE_PATH=folstad-site
           BASE_PATH: ${{ vars.BASE_PATH }}
           SITE_URL: ${{ vars.SITE_URL || 'https://radiofrequency.github.io' }}
+          # Buzz control plane (public client config — set as repo Actions variables)
+          PUBLIC_BUZZ_API_URL: ${{ vars.PUBLIC_BUZZ_API_URL }}
+          PUBLIC_COGNITO_USER_POOL_ID: ${{ vars.PUBLIC_COGNITO_USER_POOL_ID }}
+          PUBLIC_COGNITO_CLIENT_ID: ${{ vars.PUBLIC_COGNITO_CLIENT_ID }}
+          PUBLIC_COGNITO_REGION: ${{ vars.PUBLIC_COGNITO_REGION || 'us-west-2' }}
+          PUBLIC_COGNITO_DOMAIN: ${{ vars.PUBLIC_COGNITO_DOMAIN }}
         run: npm run build
 
       - name: Upload artifact

@@ -1,0 +1,114 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BuzzChrome from "../components/buzz/BuzzChrome.astro";
+import "../styles/buzz-app.css";
+---
+
+<BaseLayout
+  title="Sign in · Buzz | Folstad AI"
+  description="Sign in to Buzz with your verified email."
+>
+  <div class="bz-app">
+    <BuzzChrome active="auth" />
+    <main class="bz-app__main" id="main">
+      <span class="section-label">Account</span>
+      <h1 class="bz-title">Sign in</h1>
+      <p class="bz-lede">Use the email you verified with Cognito.</p>
+      <p class="bz-mode" data-auth-mode></p>
+      <form class="bz-form" data-login-form>
+        <label class="bz-field">
+          <span class="bz-label">Email</span>
+          <input class="bz-input" type="email" name="email" required autocomplete="username" data-email />
+        </label>
+        <label class="bz-field">
+          <span class="bz-label">Password</span>
+          <input
+            class="bz-input"
+            type="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            minlength="8"
+          />
+        </label>
+        <p class="bz-error" data-error hidden></p>
+        <p class="bz-hint" data-status hidden style="color: var(--signal)"></p>
+        <div class="bz-actions">
+          <button class="btn" type="submit" data-submit>
+            Sign in
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </button>
+          <a class="btn btn--ghost" href={`${import.meta.env.BASE_URL}signup`}>Create account</a>
+        </div>
+      </form>
+    </main>
+  </div>
+  <script>
+    import {
+      appPath,
+      authModeLabel,
+      getSession,
+      safeReturnPath,
+      signIn,
+    } from "../lib/buzz-auth";
+
+    const mode = document.querySelector("[data-auth-mode]");
+    if (mode) mode.textContent = authModeLabel();
+
+    const params = new URLSearchParams(window.location.search);
+    const next = safeReturnPath(params.get("next"), "/dashboard");
+
+    // Already signed in → go straight to destination
+    const existing = getSession();
+    if (existing?.emailVerified) {
+      window.location.replace(next);
+    }
+
+    const err = document.querySelector<HTMLElement>("[data-error]");
+    const status = document.querySelector<HTMLElement>("[data-status]");
+    const submitBtn = document.querySelector<HTMLButtonElement>("[data-submit]");
+    const emailInput = document.querySelector<HTMLInputElement>("[data-email]");
+    if (emailInput && params.get("email")) {
+      emailInput.value = params.get("email")!;
+    }
+
+    document.querySelector("[data-login-form]")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const fd = new FormData(form);
+      try {
+        if (err) {
+          err.hidden = true;
+          err.textContent = "";
+        }
+        if (status) {
+          status.hidden = false;
+          status.textContent = "Signing in…";
+        }
+        if (submitBtn) submitBtn.disabled = true;
+
+        await signIn(String(fd.get("email")), String(fd.get("password")));
+
+        if (status) status.textContent = "Signed in — opening dashboard…";
+        // replace so Back doesn’t return to the login form
+        window.location.replace(next);
+      } catch (ex) {
+        if (submitBtn) submitBtn.disabled = false;
+        if (status) status.hidden = true;
+        const msg = ex instanceof Error ? ex.message : "Sign in failed";
+        if ((ex as { code?: string })?.code === "EMAIL_UNVERIFIED") {
+          const q = new URLSearchParams({
+            email: String(fd.get("email")),
+            next,
+          });
+          window.location.replace(`${appPath("/confirm")}?${q}`);
+          return;
+        }
+        if (err) {
+          err.hidden = false;
+          err.textContent = msg;
+        }
+      }
+    });
+  </script>
+</BaseLayout>

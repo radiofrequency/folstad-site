@@ -1,17 +1,23 @@
 ---
 const base = import.meta.env.BASE_URL;
+const home = base.endsWith("/") ? base : `${base}/`;
+const isHome = Astro.url.pathname === home || Astro.url.pathname === base || Astro.url.pathname === "/";
+
+/** Hash links work on the homepage; subpages need full home + hash. */
+const section = (hash: string) => (isHome ? hash : `${home}${hash}`);
+
 const links = [
-  { href: "#what-we-do", label: "What" },
-  { href: "#how-we-do-it", label: "How" },
-  { href: "#starter-kits", label: "Kits" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#contact", label: "Contact" },
+  { href: section("#what-we-do"), label: "What" },
+  { href: section("#how-we-do-it"), label: "How" },
+  { href: section("#starter-kits"), label: "Kits" },
+  { href: section("#pricing"), label: "Pricing" },
+  { href: section("#contact"), label: "Contact" },
 ];
 ---
 
 <header class="nav">
   <div class="nav__inner wrap">
-    <a class="nav__brand" href="#hero" aria-label="Folstad AI home">
+    <a class="nav__brand" href={isHome ? "#hero" : home} aria-label="Folstad AI home">
       <img class="nav__mark" src={`${base}mark.svg`} width="28" height="28" alt="" />
       <span class="nav__word">Folstad<span class="nav__ai"> AI</span></span>
     </a>

@@ -1,0 +1,141 @@
+---
+interface Props {
+  active?: "launch" | "dashboard" | "auth";
+}
+const { active } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<header class="bz-chrome">
+  <div class="bz-chrome__inner wrap">
+    <a class="bz-chrome__brand" href={base}>
+      <img src={`${base}mark.svg`} width="24" height="24" alt="" />
+      <span>Folstad<span class="bz-chrome__ai"> AI</span></span>
+    </a>
+    <nav class="bz-chrome__nav" aria-label="Buzz">
+      <a
+        class:list={["bz-chrome__link", active === "launch" && "is-active"]}
+        href={`${base}buzz`}
+      >
+        Launch
+      </a>
+      <a
+        class:list={["bz-chrome__link", active === "dashboard" && "is-active"]}
+        href={`${base}dashboard`}
+      >
+        Dashboard
+      </a>
+      <span class="bz-chrome__user" data-buzz-user hidden></span>
+      <a class="bz-chrome__link" href={`${base}login?next=${encodeURIComponent("/dashboard")}`} data-buzz-login>Sign in</a>
+      <button type="button" class="bz-chrome__link bz-chrome__out" data-buzz-logout hidden>
+        Sign out
+      </button>
+    </nav>
+  </div>
+</header>
+
+<script>
+  import { getSession, signOut } from "../../lib/buzz-auth";
+
+  const session = getSession();
+  const userEl = document.querySelector<HTMLElement>("[data-buzz-user]");
+  const loginEl = document.querySelector<HTMLElement>("[data-buzz-login]");
+  const logoutEl = document.querySelector<HTMLButtonElement>("[data-buzz-logout]");
+
+  if (session?.emailVerified) {
+    if (userEl) {
+      userEl.hidden = false;
+      userEl.textContent = session.email;
+    }
+    if (loginEl) loginEl.hidden = true;
+    if (logoutEl) logoutEl.hidden = false;
+  }
+
+  logoutEl?.addEventListener("click", () => {
+    signOut();
+    window.location.replace(`${import.meta.env.BASE_URL}login`);
+  });
+</script>
+
+<style is:global>
+  .bz-chrome {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--nav-h);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--ghost);
+  }
+
+  .bz-chrome__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    gap: var(--space-4);
+  }
+
+  .bz-chrome__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .bz-chrome__brand:hover {
+    color: var(--ink);
+  }
+
+  .bz-chrome__brand img {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .bz-chrome__ai {
+    font-weight: 400;
+    color: var(--slate);
+    letter-spacing: 0.14em;
+  }
+
+  .bz-chrome__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .bz-chrome__link {
+    border: 0;
+    background: none;
+    padding: 0.4rem 0.65rem;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--slate);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .bz-chrome__link:hover,
+  .bz-chrome__link.is-active {
+    color: var(--ink);
+  }
+
+  .bz-chrome__user {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--signal);
+    padding: 0.4rem 0.65rem;
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

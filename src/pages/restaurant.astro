@@ -1,0 +1,366 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Nav from "../components/Nav.astro";
+import FloatingCta from "../components/FloatingCta.astro";
+import Footer from "../components/Footer.astro";
+import { X_DM_URL, X_HANDLE } from "../lib/links";
+
+const base = import.meta.env.BASE_URL;
+
+const workflows = [
+  {
+    name: "Review response",
+    promise: "Draft on-brand replies to Google / Yelp reviews for human approval — or auto-send the easy ones.",
+  },
+  {
+    name: "Reservations & guest messages",
+    promise: "Triage booking requests, waitlist notes, and private events so the floor isn’t buried in DMs.",
+  },
+  {
+    name: "Orders & ops handoffs",
+    promise: "Route supplier, catering, and special-order noise into a short queue your team can clear.",
+  },
+  {
+    name: "Staff ops cues",
+    promise: "Surface shift notes, 86 lists, and recurring “did anyone…” questions without another group chat.",
+  },
+];
+
+const fit = [
+  "Independent restaurant or small multi-location group",
+  "Owner or GM still in the inbox / reviews loop",
+  "Willing to spend a few hours on setup interviews, not a 6-month IT project",
+  "Budget for a fixed Pilot (~$4,900) if the fit is clear",
+];
+---
+
+<BaseLayout
+  title="Restaurant AI pilot — Folstad AI"
+  description="Fixed-price Restaurant Pilot: AI agents for reviews, reservations, guest messages, and staff ops. Live in weeks. Scoped quote on X @RyanFrequency."
+>
+  <Nav />
+  <main id="main">
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <div class="wrap hero__inner">
+        <p class="hero__crumb">
+          <a href={base}>Folstad AI</a>
+          <span aria-hidden="true"> / </span>
+          Restaurant Pilot
+        </p>
+        <h1 id="hero-title" class="hero__title">
+          Get reviews, bookings, and guest noise off the owner’s phone.
+        </h1>
+        <p class="hero__sub">
+          One starter-kit vertical. Agents shaped to <em>your</em> menus, voice, and tools — not a generic
+          chatbot. Fixed Pilot: <strong>$4,900</strong>, live in weeks.
+        </p>
+        <div class="hero__actions">
+          <a class="btn" href={X_DM_URL} target="_blank" rel="noopener noreferrer">
+            Get a scoped quote on X
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="hero__handle" href={X_DM_URL} target="_blank" rel="noopener noreferrer">{X_HANDLE}</a>
+        </div>
+        <p class="hero__micro">Mention “Restaurant Pilot” — we reply with what we need for a tight scope.</p>
+      </div>
+    </section>
+
+    <section class="section section--veil" aria-labelledby="pain-title">
+      <div class="wrap reveal">
+        <span class="section-label">The problem</span>
+        <h2 id="pain-title" class="section-title">Hospitality runs on interruptions.</h2>
+        <p class="section-lede">
+          Reviews stack up. Guests text the personal line. Catering and suppliers land in the same inbox as
+          payroll. Hiring another person for “admin” is expensive — and still human-error prone.
+        </p>
+        <ul class="bullets">
+          <li>Hours lost every week to first-draft replies and triage</li>
+          <li>Inconsistent voice on public reviews</li>
+          <li>Slow follow-up on events and private bookings</li>
+          <li>No extra headcount budget for pure coordination work</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="workflows-title">
+      <div class="wrap reveal">
+        <span class="section-label">What’s in the Pilot</span>
+        <h2 id="workflows-title" class="section-title">1–2 production workflows. Your stack.</h2>
+        <p class="section-lede">
+          We pick the highest-ROI path with you (usually reviews + one guest channel), train on your data,
+          deploy, and tune for 30 days.
+        </p>
+        <ul class="kits">
+          {
+            workflows.map((w) => (
+              <li class="kits__item">
+                <span class="kits__name">{w.name}</span>
+                <span class="kits__promise">{w.promise}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section class="section section--veil" aria-labelledby="offer-title">
+      <div class="wrap reveal offer">
+        <span class="section-label">The offer</span>
+        <h2 id="offer-title" class="section-title">Restaurant Pilot — $4,900 one-time.</h2>
+        <ul class="offer__list">
+          <li>Restaurant starter kit, scoped to one primary workflow (+ optional second)</li>
+          <li>Agents shaped to your data, tone, and tools</li>
+          <li>Deploy to production — not a slide deck</li>
+          <li>30 days post-launch tuning</li>
+          <li>Optional Run retainer ($1,800/mo) after you’re live</li>
+        </ul>
+        <p class="offer__note">
+          Pilot can credit toward a larger Build if you expand within 90 days. Discovery starts on X — scoped
+          quote before any work begins.
+        </p>
+        <a class="btn" href={X_DM_URL} target="_blank" rel="noopener noreferrer">
+          Message {X_HANDLE}
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="fit-title">
+      <div class="wrap reveal">
+        <span class="section-label">Fit</span>
+        <h2 id="fit-title" class="section-title">Who this is for.</h2>
+        <ul class="bullets">
+          {fit.map((item) => <li>{item}</li>)}
+        </ul>
+        <p class="section-lede fit__more">
+          Not a fit yet? See all kits on the
+          <a href={`${base}#starter-kits`}>main site</a>, or ask about Real Estate, Legal, Accounting, Bar, or
+          Support.
+        </p>
+      </div>
+    </section>
+
+    <section class="section section--veil contact" id="contact" aria-labelledby="contact-title">
+      <div class="wrap reveal">
+        <span class="section-label">Next step</span>
+        <h2 id="contact-title" class="section-title">20 minutes. Clear scope.</h2>
+        <p class="section-lede">
+          DM with your city, concept (e.g. neighborhood bistro / multi-unit), and the one workflow that hurts
+          most. We’ll say yes, no, or “try this first.”
+        </p>
+        <div class="contact__actions">
+          <a class="btn" href={X_DM_URL} target="_blank" rel="noopener noreferrer">
+            Start on X
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+          <p class="contact__hint">No forms. Direct message to {X_HANDLE}.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <FloatingCta />
+  <Footer />
+</BaseLayout>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    padding-block: var(--space-5) var(--space-7);
+    overflow: hidden;
+  }
+
+  @media (min-width: 768px) {
+    .hero {
+      min-height: calc(70svh - var(--nav-h));
+      align-items: center;
+      padding-block: var(--space-9) var(--space-10);
+    }
+  }
+
+  .hero__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 40rem;
+  }
+
+  .hero__crumb {
+    margin: 0 0 var(--space-5);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .hero__crumb a {
+    color: var(--slate);
+    text-decoration: none;
+  }
+
+  .hero__crumb a:hover {
+    color: var(--signal);
+  }
+
+  .hero__title {
+    margin: 0 0 var(--space-5);
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: 400;
+    line-height: var(--leading-tight);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  @media (min-width: 768px) {
+    .hero__title {
+      font-size: var(--text-4xl);
+      max-width: 16ch;
+    }
+  }
+
+  .hero__sub {
+    margin: 0 0 var(--space-6);
+    max-width: var(--measure);
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+    color: var(--slate);
+  }
+
+  .hero__sub strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .hero__handle {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--slate);
+    text-decoration: none;
+  }
+
+  .hero__handle:hover {
+    color: var(--signal);
+  }
+
+  .hero__micro {
+    margin: var(--space-5) 0 0;
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+
+  .bullets {
+    list-style: none;
+    margin: var(--space-8) 0 0;
+    padding: 0;
+    max-width: 36rem;
+  }
+
+  .bullets li {
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--ghost);
+    font-size: var(--text-base);
+    color: var(--ink);
+  }
+
+  .bullets li:last-child {
+    border-bottom: 1px solid var(--ghost);
+  }
+
+  .kits {
+    list-style: none;
+    margin: var(--space-8) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+  }
+
+  @media (min-width: 720px) {
+    .kits {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--space-8);
+    }
+  }
+
+  .kits__item {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-5) 0;
+    border-top: 1px solid var(--ghost);
+  }
+
+  @media (min-width: 720px) {
+    .kits__item:nth-last-child(-n + 2) {
+      border-bottom: 1px solid var(--ghost);
+    }
+  }
+
+  @media (max-width: 719px) {
+    .kits__item:last-child {
+      border-bottom: 1px solid var(--ghost);
+    }
+  }
+
+  .kits__name {
+    font-size: var(--text-lg);
+    font-family: var(--font-display);
+    color: var(--ink);
+  }
+
+  .kits__promise {
+    font-size: var(--text-sm);
+    color: var(--slate);
+    line-height: var(--leading-body);
+  }
+
+  .offer__list {
+    list-style: none;
+    margin: var(--space-6) 0;
+    padding: 0;
+    max-width: 36rem;
+  }
+
+  .offer__list li {
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--ghost);
+    color: var(--ink);
+  }
+
+  .offer__list li:last-child {
+    border-bottom: 1px solid var(--ghost);
+  }
+
+  .offer__note {
+    margin: 0 0 var(--space-6);
+    max-width: var(--measure);
+    font-size: var(--text-sm);
+    color: var(--slate);
+    line-height: var(--leading-body);
+  }
+
+  .fit__more {
+    margin-top: var(--space-7);
+  }
+
+  .contact__actions {
+    margin-top: var(--space-7);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .contact__hint {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+</style>

@@ -1,0 +1,26 @@
+{
+  "name": "@folstad/buzz-api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/handlers/router.ts --bundle --platform=node --target=node22 --format=cjs --outfile=dist/router.js && esbuild src/workers/provision.ts --bundle --platform=node --target=node22 --format=cjs --outfile=dist/provision.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "^3.758.0",
+    "@aws-sdk/client-dynamodb": "^3.758.0",
+    "@aws-sdk/client-ecs": "^3.758.0",
+    "@aws-sdk/client-elastic-load-balancing-v2": "^3.758.0",
+    "@aws-sdk/client-lambda": "^3.758.0",
+    "@aws-sdk/client-s3": "^3.758.0",
+    "@aws-sdk/lib-dynamodb": "^3.758.0",
+    "@folstad/buzz-shared": "file:../buzz-shared"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.147",
+    "@types/node": "^22.13.10",
+    "esbuild": "^0.25.1",
+    "typescript": "^5.8.2"
+  }
+}

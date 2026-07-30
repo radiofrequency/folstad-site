@@ -1,28 +1,37 @@
 ---
+const base = import.meta.env.BASE_URL;
+const home = base.endsWith("/") ? base : `${base}/`;
+
 const kits = [
   {
     name: "Restaurant",
     promise: "Orders, reservations, review response, staff ops",
+    href: `${home}restaurant`,
   },
   {
     name: "Bar",
     promise: "Inventory cues, events, guest messaging",
+    href: null as string | null,
   },
   {
     name: "Real Estate",
     promise: "Listing ops, lead triage, follow-up",
+    href: null as string | null,
   },
   {
     name: "Legal Firm",
     promise: "Intake, document assist, client updates",
+    href: null as string | null,
   },
   {
     name: "Accounting Firm",
     promise: "Client intake, recurring workflows, review prep",
+    href: null as string | null,
   },
   {
     name: "Customer Support",
     promise: "Shared inbox agents, FAQ deflection, escalation",
+    href: null as string | null,
   },
 ];
 ---
@@ -33,15 +42,26 @@ const kits = [
     <h2 id="kits-title" class="section-title">Ready paths for common SME work.</h2>
     <p class="section-lede">
       Pre-shaped agent setups for industries we already know — customized to your data and tools.
-      Reach out to see which kit fits, or we build from scratch.
+      Reach out to see which kit fits, or we build from scratch. First deep path:
+      <a href={`${home}restaurant`}>Restaurant Pilot</a>.
     </p>
 
     <ul class="kits">
       {
         kits.map((kit) => (
           <li class="kits__item">
-            <span class="kits__name">{kit.name}</span>
-            <span class="kits__promise">{kit.promise}</span>
+            {kit.href ? (
+              <a class="kits__link" href={kit.href}>
+                <span class="kits__name">{kit.name}</span>
+                <span class="kits__promise">{kit.promise}</span>
+                <span class="kits__cta">View pilot →</span>
+              </a>
+            ) : (
+              <>
+                <span class="kits__name">{kit.name}</span>
+                <span class="kits__promise">{kit.promise}</span>
+              </>
+            )}
           </li>
         ))
       }
@@ -87,6 +107,27 @@ const kits = [
 
   .kits__item:hover .kits__name {
     color: var(--signal);
+  }
+
+  .kits__link {
+    display: grid;
+    gap: var(--space-1);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .kits__link:hover {
+    text-decoration: none;
+  }
+
+  .kits__cta {
+    margin-top: var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--signal);
+    opacity: 0.85;
   }
 
   .kits__name {

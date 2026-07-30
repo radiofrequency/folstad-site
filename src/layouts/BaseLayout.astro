@@ -14,6 +14,9 @@ const {
 const canonical = Astro.site
   ? new URL(Astro.url.pathname, Astro.site).href
   : undefined;
+
+/** Optional GA4 — set PUBLIC_GA_MEASUREMENT_ID (e.g. G-XXXXXXXX) at build time. */
+const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID as string | undefined;
 ---
 
 <!doctype html>
@@ -48,6 +51,22 @@ const canonical = Astro.site
     />
 
     <title>{title}</title>
+
+    {
+      gaId && (
+        <>
+          <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
+          <script define:vars={{ gaId }}>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+              dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
+            gtag("config", gaId);
+          </script>
+        </>
+      )
+    }
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

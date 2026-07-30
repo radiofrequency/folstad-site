@@ -1,0 +1,169 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BuzzChrome from "../../components/buzz/BuzzChrome.astro";
+import "../../styles/buzz-app.css";
+---
+
+<BaseLayout
+  title="Project · Buzz | Folstad AI"
+  description="Project health, lifecycle controls, and logs."
+>
+  <div class="bz-app" data-project-page>
+    <BuzzChrome active="dashboard" />
+    <main class="bz-app__main bz-app__main--wide" id="main">
+      <p class="bz-hint"><a href={`${import.meta.env.BASE_URL}dashboard`}>← All projects</a></p>
+      <span class="section-label">Project</span>
+      <h1 class="bz-title" data-name>Loading…</h1>
+      <div class="bz-meta" data-meta></div>
+      <p class="bz-error" data-error hidden></p>
+
+      <div class="bz-card">
+        <div class="bz-actions" style="margin-top:0">
+          <button type="button" class="btn" data-action="health">Refresh health</button>
+          <button type="button" class="btn btn--ghost" data-action="restart">Restart</button>
+          <button type="button" class="btn btn--ghost" data-action="stop">Stop</button>
+        </div>
+      </div>
+
+      <h2 class="section-label" style="margin-top:2rem">Logs</h2>
+      <div class="bz-actions" style="margin-top:0;margin-bottom:0.75rem">
+        <button type="button" class="btn btn--ghost" data-action="logs">Refresh logs</button>
+        <label class="bz-hint" style="margin:0">
+          <input type="checkbox" data-auto-logs /> Auto-refresh
+        </label>
+      </div>
+      <pre class="bz-logs" data-logs>Loading logs…</pre>
+    </main>
+  </div>
+  <script>
+    import { requireSession } from "../../lib/buzz-auth";
+    import {
+      getLogs,
+      getProject,
+      refreshHealth,
+      restartProject,
+      stopProject,
+    } from "../../lib/buzz-api";
+    import type { Project } from "../../lib/buzz-types";
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const base = import.meta.env.BASE_URL;
+
+    if (!id) {
+      window.location.href = `${base}dashboard`;
+    } else {
+      const session = requireSession(`${base}dashboard/project?id=${encodeURIComponent(id)}`);
+      if (session) {
+        let poll: number | undefined;
+        const errEl = document.querySelector<HTMLElement>("[data-error]");
+        const nameEl = document.querySelector("[data-name]");
+        const metaEl = document.querySelector("[data-meta]");
+        const logsEl = document.querySelector("[data-logs]");
+
+        function showError(msg: string | null) {
+          if (!errEl) return;
+          if (msg) {
+            errEl.hidden = false;
+            errEl.textContent = msg;
+          } else {
+            errEl.hidden = true;
+            errEl.textContent = "";
+          }
+        }
+
+        function paint(p: Project) {
+          if (nameEl) nameEl.textContent = p.projectName;
+          if (metaEl) {
+            const live = p.url
+              ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.url)}</a>`
+              : `<span class="mono">${esc(p.domain)}</span>`;
+            const fail = p.failureReason
+              ? `<span style="color:#8b3a3a;max-width:40rem">${esc(p.failureReason)}</span>`
+              : "";
+            metaEl.innerHTML = `
+              <span class="bz-badge bz-badge--${p.status}">${p.status}</span>
+              <span class="bz-badge bz-badge--${p.health}">${p.health}</span>
+              ${live}
+              <span class="mono">${esc(p.domain)}</span>
+              <span>${esc(p.industryLabel)}</span>
+              <span>${p.bots.length} agents</span>
+              <span>${esc(p.ownerEmail)}</span>
+              ${fail}
+            `;
+          }
+        }
+
+        async function loadLogs() {
+          if (!logsEl || !id) return;
+          try {
+            const lines = await getLogs(id);
+            logsEl.innerHTML = lines
+              .map((l) => `<div><span class="ts">${esc(l.ts)}</span>${esc(l.message)}</div>`)
+              .join("");
+          } catch (ex) {
+            logsEl.textContent = ex instanceof Error ? ex.message : "Logs failed";
+          }
+        }
+
+        function esc(s: string) {
+          return s
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;");
+        }
+
+        async function load() {
+          try {
+            showError(null);
+            paint(await getProject(id!));
+            await loadLogs();
+          } catch (ex) {
+            showError(ex instanceof Error ? ex.message : "Load failed");
+          }
+        }
+
+        document.querySelector("[data-project-page]")?.addEventListener("click", async (e) => {
+          const btn = (e.target as HTMLElement).closest<HTMLElement>("[data-action]");
+          if (!btn || !id) return;
+          const action = btn.dataset.action;
+          try {
+            showError(null);
+            if (action === "health") {
+              await refreshHealth(id);
+              paint(await getProject(id));
+            } else if (action === "stop") {
+              if (!confirm("Stop this project? The container will scale to zero.")) return;
+              paint(await stopProject(id));
+              await loadLogs();
+            } else if (action === "restart") {
+              if (!confirm("Restart this project?")) return;
+              paint(await restartProject(id));
+              const t0 = Date.now();
+              const iv = window.setInterval(async () => {
+                const p = await getProject(id);
+                paint(p);
+                if (p.status === "running" || p.status === "failed" || Date.now() - t0 > 15000) {
+                  clearInterval(iv);
+                  await loadLogs();
+                }
+              }, 800);
+            } else if (action === "logs") {
+              await loadLogs();
+            }
+          } catch (ex) {
+            showError(ex instanceof Error ? ex.message : "Action failed");
+          }
+        });
+
+        document.querySelector("[data-auto-logs]")?.addEventListener("change", (e) => {
+          const on = (e.target as HTMLInputElement).checked;
+          if (poll) window.clearInterval(poll);
+          if (on) poll = window.setInterval(() => void loadLogs(), 4000);
+        });
+
+        void load();
+      }
+    }
+  </script>
+</BaseLayout>

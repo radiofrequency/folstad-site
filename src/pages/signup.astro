@@ -1,0 +1,70 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BuzzChrome from "../components/buzz/BuzzChrome.astro";
+import "../styles/buzz-app.css";
+---
+
+<BaseLayout
+  title="Create account · Buzz | Folstad AI"
+  description="Create a Buzz account. We’ll verify your email via AWS Cognito."
+>
+  <div class="bz-app">
+    <BuzzChrome active="auth" />
+    <main class="bz-app__main" id="main">
+      <span class="section-label">Account</span>
+      <h1 class="bz-title">Create account</h1>
+      <p class="bz-lede">
+        Sign up with email. Cognito sends a verification code (mock mode uses <strong>123456</strong>).
+      </p>
+      <p class="bz-mode" data-auth-mode></p>
+      <form data-signup-form>
+        <label class="bz-field">
+          <span class="bz-label">Email</span>
+          <input class="bz-input" type="email" name="email" required autocomplete="username" />
+        </label>
+        <label class="bz-field">
+          <span class="bz-label">Password</span>
+          <input
+            class="bz-input"
+            type="password"
+            name="password"
+            required
+            autocomplete="new-password"
+            minlength="8"
+          />
+        </label>
+        <p class="bz-hint">Min 8 characters, with upper, lower, and a number (Cognito policy).</p>
+        <p class="bz-error" data-error hidden></p>
+        <div class="bz-actions">
+          <button class="btn" type="submit">Sign up <span class="btn__arrow" aria-hidden="true">→</span></button>
+          <a class="btn btn--ghost" href={`${import.meta.env.BASE_URL}login`}>Sign in</a>
+        </div>
+      </form>
+    </main>
+  </div>
+  <script>
+    import { appPath, authModeLabel, signUp } from "../lib/buzz-auth";
+
+    const mode = document.querySelector("[data-auth-mode]");
+    if (mode) mode.textContent = authModeLabel();
+
+    document.querySelector("[data-signup-form]")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const err = document.querySelector<HTMLElement>("[data-error]");
+      const fd = new FormData(form);
+      const email = String(fd.get("email"));
+      try {
+        if (err) err.hidden = true;
+        await signUp(email, String(fd.get("password")));
+        const q = new URLSearchParams({ email, next: "/dashboard" });
+        window.location.replace(`${appPath("/confirm")}?${q}`);
+      } catch (ex) {
+        if (err) {
+          err.hidden = false;
+          err.textContent = ex instanceof Error ? ex.message : "Sign up failed";
+        }
+      }
+    });
+  </script>
+</BaseLayout>

@@ -9,7 +9,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "build:api": "npm run build --prefix packages/buzz-api",
+    "build:runtime": "npm run build --prefix packages/buzz-runtime"
   },
   "dependencies": {
     "astro": "^7.1.4"

@@ -1,0 +1,839 @@
+---
+import { BUZZ_SME, BUZZ_GROUPS } from "../../data/buzz-sme";
+import BuzzChrome from "./BuzzChrome.astro";
+
+const smeJson = JSON.stringify(BUZZ_SME);
+const steps = [
+  { id: "welcome", label: "Start" },
+  { id: "project", label: "Name" },
+  { id: "domain", label: "Domain" },
+  { id: "account", label: "Account" },
+  { id: "industry", label: "Industry" },
+  { id: "team", label: "Team" },
+  { id: "confirm", label: "Launch" },
+] as const;
+---
+
+<div
+  class="buzz"
+  id="buzz-wizard"
+  data-buzz-wizard
+  data-step="welcome"
+>
+  <script type="application/json" id="buzz-sme-data" set:html={smeJson} />
+
+  <BuzzChrome active="launch" />
+
+  <div class="buzz__progress wrap" data-buzz-progress aria-hidden="false">
+    <ol class="buzz__steps" aria-label="Launch steps">
+      {
+        steps.map((s, i) => (
+          <li class="buzz__step" data-step-dot={s.id} data-index={i}>
+            <span class="buzz__step-num">{i === 0 ? "·" : i}</span>
+            <span class="buzz__step-label">{s.label}</span>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  <main class="buzz__main wrap" id="main">
+    <!-- Welcome -->
+    <section class="buzz__panel" data-panel="welcome" aria-labelledby="welcome-title">
+      <span class="section-label">Buzz launcher</span>
+      <h1 id="welcome-title" class="buzz__title">
+        Spin up a private AI team for your business.
+      </h1>
+      <p class="buzz__lede">
+        Name your project, pick an industry, customize agent roles and prompts — then launch on
+        private AWS hosting for a flat <strong>$100 / month</strong>.
+      </p>
+      <ul class="buzz__bullets">
+        <li>Subdomain on <span class="mono">*.folstad.ca</span></li>
+        <li>Industry-tuned bot roster you can fully edit</li>
+        <li>Private AWS hosting included</li>
+      </ul>
+      <p class="buzz__proto-note">
+        Sign in with Cognito (verified email). Billing not wired yet — local mock API when AWS env is
+        unset.
+      </p>
+      <div class="buzz__actions">
+        <button type="button" class="btn" data-buzz-next>
+          Start
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Project name -->
+    <section class="buzz__panel" data-panel="project" hidden aria-labelledby="project-title">
+      <span class="section-label">Step 1</span>
+      <h2 id="project-title" class="buzz__title">What should we call this project?</h2>
+      <p class="buzz__lede">Your company, product, or workspace name.</p>
+      <label class="buzz__field">
+        <span class="buzz__label">Project name</span>
+        <input
+          class="buzz__input"
+          type="text"
+          name="projectName"
+          data-field="projectName"
+          placeholder="e.g. Northwind Kitchen"
+          autocomplete="organization"
+          required
+        />
+      </label>
+      <p class="buzz__hint">
+        Slug preview: <span class="mono" data-slug-preview>project</span>
+      </p>
+      <p class="buzz__error" data-error="project" hidden></p>
+      <div class="buzz__actions">
+        <button type="button" class="btn btn--ghost" data-buzz-back>Back</button>
+        <button type="button" class="btn" data-buzz-next>
+          Continue
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Domain -->
+    <section class="buzz__panel" data-panel="domain" hidden aria-labelledby="domain-title">
+      <span class="section-label">Step 2</span>
+      <h2 id="domain-title" class="buzz__title">Choose your domain.</h2>
+      <p class="buzz__lede">
+        Defaults from your project name. Custom domains come later — for now you get a private
+        <span class="mono">*.folstad.ca</span> host.
+      </p>
+      <label class="buzz__field">
+        <span class="buzz__label">Subdomain</span>
+        <div class="buzz__domain">
+          <input
+            class="buzz__input buzz__input--domain mono"
+            type="text"
+            name="subdomain"
+            data-field="subdomain"
+            spellcheck="false"
+            autocomplete="off"
+            aria-describedby="domain-full"
+          />
+          <span class="buzz__domain-suffix mono">.folstad.ca</span>
+        </div>
+      </label>
+      <p class="buzz__hint" id="domain-full">
+        Full host: <span class="mono" data-domain-full>project.folstad.ca</span>
+      </p>
+      <p class="buzz__error" data-error="domain" hidden></p>
+      <div class="buzz__actions">
+        <button type="button" class="btn btn--ghost" data-buzz-back>Back</button>
+        <button type="button" class="btn" data-buzz-next>
+          Continue
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Account (Cognito) -->
+    <section class="buzz__panel" data-panel="account" hidden aria-labelledby="account-title">
+      <span class="section-label">Step 3</span>
+      <h2 id="account-title" class="buzz__title">Launch as this account.</h2>
+      <p class="buzz__lede">
+        Projects are owned by your verified Cognito email. Sign in if you haven’t already.
+      </p>
+      <div class="buzz__account" data-account-box>
+        <p class="buzz__hint">Checking session…</p>
+      </div>
+      <p class="buzz__error" data-error="account" hidden></p>
+      <div class="buzz__actions">
+        <button type="button" class="btn btn--ghost" data-buzz-back>Back</button>
+        <button type="button" class="btn" data-buzz-next data-account-continue>
+          Continue
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Industry -->
+    <section class="buzz__panel" data-panel="industry" hidden aria-labelledby="industry-title">
+      <span class="section-label">Step 4</span>
+      <h2 id="industry-title" class="buzz__title">What kind of business is this?</h2>
+      <p class="buzz__lede">We’ll seed a team of agents tuned to your industry. You can edit everything next.</p>
+      <label class="buzz__field">
+        <span class="buzz__label">Filter</span>
+        <input
+          class="buzz__input"
+          type="search"
+          data-field="industryFilter"
+          placeholder="Search industries…"
+          autocomplete="off"
+        />
+      </label>
+      <div class="buzz__industry-list" data-industry-list role="listbox" aria-label="Industries">
+        {
+          BUZZ_GROUPS.map((group) => (
+            <div class="buzz__industry-group" data-industry-group={group}>
+              <h3 class="buzz__industry-group-label">{group}</h3>
+              {BUZZ_SME.filter((s) => s.group === group).map((sme) => (
+                <button
+                  type="button"
+                  class="buzz__industry"
+                  role="option"
+                  data-industry-id={sme.id}
+                  aria-selected="false"
+                >
+                  <span class="buzz__industry-name">{sme.label}</span>
+                  <span class="buzz__industry-promise">{sme.promise}</span>
+                </button>
+              ))}
+            </div>
+          ))
+        }
+      </div>
+      <p class="buzz__error" data-error="industry" hidden></p>
+      <div class="buzz__actions">
+        <button type="button" class="btn btn--ghost" data-buzz-back>Back</button>
+        <button type="button" class="btn" data-buzz-next>
+          Continue
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Team -->
+    <section class="buzz__panel" data-panel="team" hidden aria-labelledby="team-title">
+      <span class="section-label">Step 5</span>
+      <h2 id="team-title" class="buzz__title">Shape your agent team.</h2>
+      <p class="buzz__lede">
+        Suggested for <strong data-team-industry-label>—</strong>. Rename bots, edit roles and system
+        prompts, add or remove agents.
+      </p>
+      <div class="buzz__team" data-team-list></div>
+      <button type="button" class="btn btn--ghost buzz__add-bot" data-add-bot>
+        + Add bot
+      </button>
+      <p class="buzz__error" data-error="team" hidden></p>
+      <div class="buzz__actions">
+        <button type="button" class="btn btn--ghost" data-buzz-back>Back</button>
+        <button type="button" class="btn" data-buzz-next>
+          Continue
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Confirm -->
+    <section class="buzz__panel" data-panel="confirm" hidden aria-labelledby="confirm-title">
+      <span class="section-label">Step 6</span>
+      <h2 id="confirm-title" class="buzz__title">Ready to launch.</h2>
+      <p class="buzz__lede">Review your Buzz workspace, then confirm.</p>
+
+      <dl class="buzz__recap">
+        <div>
+          <dt>Project</dt>
+          <dd data-recap="projectName">—</dd>
+        </div>
+        <div>
+          <dt>Domain</dt>
+          <dd class="mono" data-recap="domain">—</dd>
+        </div>
+        <div>
+          <dt>Account</dt>
+          <dd data-recap="email">—</dd>
+        </div>
+        <div>
+          <dt>Industry</dt>
+          <dd data-recap="industry">—</dd>
+        </div>
+        <div>
+          <dt>Agents</dt>
+          <dd data-recap="bots">—</dd>
+        </div>
+      </dl>
+
+      <div class="buzz__price">
+        <p class="buzz__price-amount">
+          <span class="buzz__price-num">$100</span>
+          <span class="buzz__price-cadence">/ month</span>
+        </p>
+        <p class="buzz__price-note">Private AWS hosting included. Month-to-month. No billing charged in this build.</p>
+      </div>
+      <p class="buzz__error" data-error="launch" hidden></p>
+
+      <div class="buzz__actions">
+        <button type="button" class="btn btn--ghost" data-buzz-back>Back</button>
+        <button type="button" class="btn" data-buzz-launch>
+          Launch Buzz
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Success / provisioning -->
+    <section class="buzz__panel" data-panel="success" hidden aria-labelledby="success-title">
+      <div data-provisioning>
+        <span class="section-label">Provisioning</span>
+        <h2 id="success-title" class="buzz__title">Spinning up your Buzz…</h2>
+        <p class="buzz__lede" data-provision-status>Creating project…</p>
+        <ul class="buzz__provision-steps" data-provision-steps>
+          <li data-provision-step="0">Creating project record…</li>
+          <li data-provision-step="1">Provisioning host…</li>
+          <li data-provision-step="2">Deploying agent team…</li>
+          <li data-provision-step="3">Ready.</li>
+        </ul>
+        <p class="buzz__error" data-error="provision" hidden></p>
+      </div>
+      <div data-success-summary hidden>
+        <span class="section-label">Live</span>
+        <h2 class="buzz__title">Your Buzz is live.</h2>
+        <p class="buzz__lede">Open the dashboard to check health, stop/restart, and logs.</p>
+        <div class="buzz__success-card">
+          <p class="buzz__success-name" data-success="projectName">—</p>
+          <p class="buzz__success-domain mono">
+            <span data-success="domain">—</span>
+          </p>
+          <p class="buzz__success-meta">
+            <span data-success="industry">—</span>
+            · <span data-success="botCount">—</span> agents
+            · <strong>$100/mo</strong>
+          </p>
+          <ul class="buzz__success-bots" data-success-bots></ul>
+        </div>
+        <div class="buzz__actions">
+          <a class="btn" data-dashboard-link href={`${import.meta.env.BASE_URL}dashboard`}>
+            Open dashboard
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+          <button type="button" class="btn btn--ghost" data-buzz-restart>Launch another</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="buzz__foot wrap">
+    <p>Folstad AI · Buzz launcher prototype</p>
+  </footer>
+</div>
+
+<style is:global>
+  /* Global under .buzz so JS-rendered bot cards inherit styles */
+  .buzz {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Buzz is app-like — no floating marketing CTA pad */
+  body:has(.buzz) {
+    padding-bottom: 0;
+  }
+
+  .buzz__account {
+    padding: var(--space-5);
+    border: 1px solid var(--ghost);
+    margin-bottom: var(--space-4);
+    background: color-mix(in srgb, var(--veil) 50%, transparent);
+  }
+
+  .buzz__progress {
+    padding-block: var(--space-4) 0;
+  }
+
+  .buzz[data-step="welcome"] .buzz__progress,
+  .buzz[data-step="success"] .buzz__progress {
+    display: none;
+  }
+
+  .buzz__steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .buzz__step {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--text-xs);
+    color: var(--slate);
+    opacity: 0.55;
+  }
+
+  .buzz__step.is-active {
+    opacity: 1;
+    color: var(--ink);
+  }
+
+  .buzz__step.is-done {
+    opacity: 0.85;
+    color: var(--signal);
+  }
+
+  .buzz__step-num {
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+
+  .buzz__step-label {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .buzz__step-label {
+      display: inline;
+      letter-spacing: 0.04em;
+    }
+  }
+
+  .buzz__main {
+    flex: 1;
+    width: min(100% - var(--space-6), 36rem);
+    padding-block: var(--space-7) var(--space-9);
+  }
+
+  @media (min-width: 768px) {
+    .buzz__main {
+      width: min(100% - var(--space-8), 36rem);
+      padding-block: var(--space-8) var(--space-10);
+    }
+  }
+
+  .buzz__panel[hidden] {
+    display: none !important;
+  }
+
+  .buzz__title {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: 400;
+    line-height: var(--leading-tight);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    max-width: 18ch;
+  }
+
+  .buzz__lede {
+    margin: 0 0 var(--space-6);
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+    color: var(--slate);
+    max-width: var(--measure);
+  }
+
+  .buzz__lede strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .buzz__bullets {
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .buzz__bullets li {
+    position: relative;
+    padding: 0.4rem 0 0.4rem 1rem;
+    font-size: var(--text-sm);
+    color: var(--ink);
+  }
+
+  .buzz__bullets li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.85em;
+    width: 0.3rem;
+    height: 0.3rem;
+    border-radius: 50%;
+    background: var(--signal);
+    opacity: 0.55;
+  }
+
+  .buzz__proto-note {
+    margin: 0 0 var(--space-6);
+    font-size: var(--text-xs);
+    color: var(--slate);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+
+  .buzz__field {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .buzz__label {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .buzz__optional {
+    font-weight: 400;
+    color: var(--slate);
+  }
+
+  .buzz__input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--ghost-strong);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    border-radius: 2px;
+    transition: border-color var(--duration) var(--ease), background var(--duration) var(--ease);
+  }
+
+  .buzz__input:hover {
+    border-color: var(--signal-mid);
+  }
+
+  .buzz__input:focus {
+    outline: none;
+    border-color: var(--signal);
+    background: #fff;
+  }
+
+  .buzz__input--domain {
+    border-right: 0;
+    border-radius: 2px 0 0 2px;
+  }
+
+  .buzz__domain {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .buzz__domain-suffix {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    border: 1px solid var(--ghost-strong);
+    border-left: 0;
+    background: var(--veil);
+    color: var(--slate);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .buzz__hint {
+    margin: 0 0 var(--space-5);
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+
+  .buzz__error {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-sm);
+    color: #8b3a3a;
+  }
+
+  .buzz__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .btn--ghost {
+    background: transparent;
+  }
+
+  .buzz__skip {
+    margin-left: auto;
+    border: 0;
+    background: none;
+    padding: 0.5rem;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--slate);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .buzz__skip:hover {
+    color: var(--signal);
+  }
+
+  .buzz__industry-list {
+    display: grid;
+    gap: var(--space-5);
+    max-height: min(52vh, 28rem);
+    overflow: auto;
+    margin-bottom: var(--space-4);
+    padding-right: var(--space-2);
+    border-top: 1px solid var(--ghost);
+    border-bottom: 1px solid var(--ghost);
+    padding-block: var(--space-3);
+  }
+
+  .buzz__industry-group-label {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .buzz__industry {
+    display: grid;
+    gap: 0.15rem;
+    width: 100%;
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: 2px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+    border-radius: 2px;
+    transition:
+      background var(--duration) var(--ease),
+      border-color var(--duration) var(--ease);
+  }
+
+  .buzz__industry:hover {
+    background: var(--signal-soft);
+  }
+
+  .buzz__industry[aria-selected="true"] {
+    background: var(--signal-soft);
+    border-color: var(--signal-mid);
+  }
+
+  .buzz__industry-name {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    color: var(--ink);
+  }
+
+  .buzz__industry-promise {
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+
+  .buzz__industry-group[hidden] {
+    display: none;
+  }
+
+  .buzz__team {
+    display: grid;
+    gap: var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+
+  .buzz__bot {
+    padding: var(--space-5);
+    border: 1px solid var(--ghost);
+    background: color-mix(in srgb, var(--veil) 55%, transparent);
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .buzz__bot-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .buzz__bot-index {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  .buzz__bot-remove {
+    border: 0;
+    background: none;
+    padding: 0.25rem 0.4rem;
+    font-size: var(--text-xs);
+    color: var(--slate);
+    cursor: pointer;
+    font-family: var(--font-body);
+  }
+
+  .buzz__bot-remove:hover {
+    color: #8b3a3a;
+  }
+
+  .buzz__bot .buzz__field {
+    margin-bottom: 0;
+  }
+
+  .buzz__textarea {
+    min-height: 7rem;
+    resize: vertical;
+    line-height: var(--leading-snug);
+    font-size: var(--text-sm);
+  }
+
+  .buzz__add-bot {
+    margin-bottom: var(--space-2);
+  }
+
+  .buzz__recap {
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--ghost);
+  }
+
+  .buzz__recap > div {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--ghost);
+  }
+
+  .buzz__recap dt {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slate);
+    padding-top: 0.15rem;
+  }
+
+  .buzz__recap dd {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink);
+  }
+
+  .buzz__price {
+    margin-bottom: var(--space-2);
+    padding: var(--space-5) 0;
+    border-top: 1px solid var(--ghost);
+    border-bottom: 1px solid var(--ghost);
+  }
+
+  .buzz__price-amount {
+    margin: 0 0 var(--space-2);
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .buzz__price-num {
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .buzz__price-cadence {
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+
+  .buzz__price-note {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+
+  .buzz__provision-steps {
+    list-style: none;
+    margin: var(--space-6) 0 0;
+    padding: 0;
+  }
+
+  .buzz__provision-steps li {
+    padding: 0.55rem 0;
+    font-size: var(--text-sm);
+    color: var(--slate);
+    opacity: 0.4;
+    transition: opacity var(--duration-slow) var(--ease), color var(--duration-slow) var(--ease);
+  }
+
+  .buzz__provision-steps li.is-active {
+    opacity: 1;
+    color: var(--ink);
+  }
+
+  .buzz__provision-steps li.is-done {
+    opacity: 0.75;
+    color: var(--signal);
+  }
+
+  .buzz__success-card {
+    margin: var(--space-6) 0;
+    padding: var(--space-6);
+    border: 1px solid var(--ghost);
+    background: var(--veil);
+  }
+
+  .buzz__success-name {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    letter-spacing: -0.02em;
+  }
+
+  .buzz__success-domain {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--signal);
+  }
+
+  .buzz__success-meta {
+    margin: 0 0 var(--space-5);
+    font-size: var(--text-sm);
+    color: var(--slate);
+  }
+
+  .buzz__success-bots {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--ghost);
+  }
+
+  .buzz__success-bots li {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--ghost);
+    font-size: var(--text-sm);
+  }
+
+  .buzz__success-bots strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .buzz__success-bots span {
+    color: var(--slate);
+  }
+
+  .buzz__foot {
+    padding-block: var(--space-5);
+    border-top: 1px solid var(--ghost);
+  }
+
+  .buzz__foot p {
+    margin: 0;
+    font-size: var(--text-xs);
+    color: var(--slate);
+    letter-spacing: 0.04em;
+  }
+</style>
