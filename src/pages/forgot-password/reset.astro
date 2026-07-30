@@ -78,6 +78,10 @@ import "../../styles/buzz-app.css";
 
         <label class="bz-field">
           <span class="bz-label">Confirm new password</span>
+          {/*
+            Not autocomplete=new-password — managers only fill one field; we mirror
+            the primary password into confirm via JS when Google suggests one.
+          */}
           <input
             class="bz-input"
             type="password"
@@ -85,12 +89,28 @@ import "../../styles/buzz-app.css";
             id="confirm-password"
             required
             minlength="8"
-            autocomplete="new-password"
+            autocomplete="off"
             data-password2
           />
         </label>
 
-        <p class="bz-hint">Min 8 characters, with upper, lower, and a number.</p>
+        <p class="bz-hint">Min 8 characters, with upper, lower, and a number. Confirm fills automatically if you use a password manager.</p>
+
+        <style is:global>
+          /* Chrome fires animationstart on autofill — used to sync confirm field */
+          @keyframes buzz-on-autofill {
+            from {
+              opacity: 0.99;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+          #new-password:-webkit-autofill {
+            animation-name: buzz-on-autofill;
+            animation-duration: 0.001s;
+          }
+        </style>
         <p class="bz-error" data-error hidden></p>
         <p class="bz-hint" data-ok hidden style="color: var(--signal)"></p>
 
@@ -148,6 +168,39 @@ import "../../styles/buzz-app.css";
       window.location.replace(appPath("/forgot-password"));
     }
 
+    /** Google PM only fills the first new-password field — mirror into confirm. */
+    function syncConfirmFromPrimary() {
+      if (!passwordInput || !password2Input) return;
+      if (passwordInput.value && password2Input.value !== passwordInput.value) {
+        password2Input.value = passwordInput.value;
+        // Notify any listeners / PM that confirm is populated
+        password2Input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    }
+
+    passwordInput?.addEventListener("input", syncConfirmFromPrimary);
+    passwordInput?.addEventListener("change", syncConfirmFromPrimary);
+    passwordInput?.addEventListener("keyup", syncConfirmFromPrimary);
+    passwordInput?.addEventListener("animationstart", (e) => {
+      if ((e as AnimationEvent).animationName === "buzz-on-autofill") {
+        syncConfirmFromPrimary();
+      }
+    });
+    // GPM often fills without reliable events — poll briefly while focused
+    let poll: number | undefined;
+    passwordInput?.addEventListener("focus", () => {
+      let n = 0;
+      window.clearInterval(poll);
+      poll = window.setInterval(() => {
+        syncConfirmFromPrimary();
+        if (++n > 40) window.clearInterval(poll);
+      }, 100);
+    });
+    passwordInput?.addEventListener("blur", () => {
+      window.clearInterval(poll);
+      syncConfirmFromPrimary();
+    });
+
     function showErr(msg: string | null) {
       if (!errEl) return;
       if (msg) {
@@ -177,12 +230,17 @@ import "../../styles/buzz-app.css";
 
       const email = emailInput?.value?.trim().toLowerCase() ?? "";
       const code = codeInput?.value ?? "";
+      syncConfirmFromPrimary();
       const password = passwordInput?.value ?? "";
-      const password2 = password2Input?.value ?? "";
+      const password2 = password2Input?.value || password;
 
       if (!email) {
         showErr("Email is required.");
         emailInput?.focus();
+        return;
+      }
+      if (!password) {
+        showErr("Enter a new password.");
         return;
       }
       if (password !== password2) {
