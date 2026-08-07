@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
+# www.folstad.ca is served from branch folstad-pages (tag folstad-v1).
+# main no longer auto-deploys so Buzz work does not overwrite the marketing site.
+# Re-enable push triggers here only if main should own Pages again.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
