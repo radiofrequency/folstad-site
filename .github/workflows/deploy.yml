@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [folstad-pages]
   workflow_dispatch:
 
 permissions:
@@ -33,9 +33,8 @@ jobs:
       - name: Build
         env:
           # Custom domain / root: leave BASE_PATH unset (build uses base: "/").
-          # Project site only: set repo variable BASE_PATH=folstad-site
           BASE_PATH: ${{ vars.BASE_PATH }}
-          SITE_URL: ${{ vars.SITE_URL || 'https://radiofrequency.github.io' }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.folstad.ca' }}
         run: npm run build
 
       - name: Upload artifact
