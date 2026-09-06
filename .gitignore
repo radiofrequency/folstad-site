@@ -18,6 +18,7 @@ pnpm-debug.log*
 .env.production
 **/__pycache__/
 *.pyc
+packages/buzz-platform/scripts/.relay.env
 
 # macOS-specific files
 .DS_Store

@@ -10,5 +10,5 @@ new BuzzStack(app, "BuzzStack", {
     account: process.env.CDK_DEFAULT_ACCOUNT ?? "217074483639",
     region: "us-west-2",
   },
-  description: "Buzz control plane + free EC2 relay (no LNbits)",
+  description: "Buzz control plane: Cognito, API, DynamoDB (+ ECS hooks)",
 });

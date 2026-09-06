@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run on the relay EC2 via SSM. Dumps a reachable Postgres into /opt/buzz/migrate/.
+# Optional on-box dump if Postgres is reachable from the VPS. Prefer migrate-from-rds.sh (laptop dump + scp).
 # Prefers DATABASE_URL. Otherwise builds it from RDS_HOST + Secrets Manager.
 set -euo pipefail
 

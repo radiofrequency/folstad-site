@@ -30,7 +30,7 @@ Keeps:
   ECR buzz-runtime, ECS cluster, Folstad ALB (project hosts)
   buzzftw.com / www CloudFront + S3 marketing
   Route53 zone ${ZONE_NAME}
-  the new buzz-relay EC2 + EIP + buzz/relay-ec2 secret
+  the Hetzner VPS and its /opt/buzz data
 EOF
       exit 0
       ;;
@@ -139,7 +139,7 @@ fi
 echo
 echo "Teardown step finished ($([[ "${DRY_RUN}" -eq 1 ]] && echo dry-run || echo executed))."
 echo "Not deleted (on purpose): Cognito, DynamoDB, API Gateway, Folstad ALB/ECS cluster,"
-echo "marketing CloudFront/S3, Route53 zone, buzz-relay EC2."
+echo "marketing CloudFront/S3, Route53 zone, Hetzner VPS."
 echo "If the shared ALB is unused after this, remove it in a later CDK deploy — do not"
 echo "cdk destroy BuzzStack (that would delete the control plane)."
 if [[ "${DRY_RUN}" -eq 1 ]]; then

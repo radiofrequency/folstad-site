@@ -5,8 +5,8 @@
 | `buzz-shared` | API + Project TypeScript types |
 | `buzz-api` | Lambda handlers (JWT auth, DynamoDB, ECS lifecycle) |
 | `buzz-runtime` | Fargate container: `/` landing + `/health` |
-| `buzz-platform` | Free BuzzFTW relay on one EC2 (compose, migrate, teardown). No LNbits |
-| `../../infra` | CDK: control plane + `BuzzRelayEc2` |
+| `buzz-platform` | Free BuzzFTW relay on Hetzner (compose, migrate, teardown). No LNbits |
+| `../../infra` | CDK: Folstad control plane only (no relay EC2) |
 
 ## Local site
 
@@ -25,4 +25,4 @@ cd packages/buzz-api && npm i && npm run build
 cd ../../infra && npm i && npx cdk deploy
 ```
 
-Public relay (`relay.buzzftw.com`) is the EC2 compose stack. Runbook: [`../buzz-platform/MIGRATION.md`](../buzz-platform/MIGRATION.md).
+Public relay (`relay.buzzftw.com`) is a Hetzner compose stack. Runbook: [`../buzz-platform/MIGRATION.md`](../buzz-platform/MIGRATION.md).

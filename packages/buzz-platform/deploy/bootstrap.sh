@@ -1,34 +1,22 @@
 #!/usr/bin/env bash
-# First-boot / idempotent start for the free Buzz relay on EC2.
-# No LNbits. Compose stack: relay + postgres + redis + minio (+ optional Caddy).
+# First-boot / idempotent start for the free Buzz relay (Hetzner Ubuntu).
+# No LNbits. Compose: relay + postgres + redis + minio (+ optional Caddy).
 set -euo pipefail
 
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/buzz}"
-REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-west-2}}"
-SECRET_NAME="${BUZZ_SECRET_NAME:-buzz/relay-ec2}"
-LEGACY_SECRET="${BUZZ_LEGACY_SECRET_NAME:-buzz/platform}"
 DOMAIN="${BUZZ_DOMAIN:-relay.buzzftw.com}"
 WILDCARD_BASE="${BUZZ_WILDCARD_BASE:-buzzftw.com}"
 ACME_EMAIL="${CADDY_ACME_EMAIL:-ops@${WILDCARD_BASE}}"
 ENABLE_TLS="${BUZZ_COMPOSE_TLS:-false}"
+SEED_JSON="${SEED_JSON:-${DEPLOY_DIR}/seed.json}"
 
 cd "${DEPLOY_DIR}"
-
-secret_exists() {
-  aws secretsmanager describe-secret --secret-id "$1" --region "${REGION}" >/dev/null 2>&1
-}
-
-read_secret_json() {
-  aws secretsmanager get-secret-value --secret-id "$1" --region "${REGION}" \
-    --query SecretString --output text
-}
 
 seed_from_legacy() {
   local raw="$1"
   python3 -c '
 import json, os, sys
 legacy = json.loads(sys.argv[1])
-# Accept either JSON or KEY=VAL blobs stored as a single string field.
 if isinstance(legacy, str):
     parsed = {}
     for line in legacy.splitlines():
@@ -90,7 +78,7 @@ def alnum(n=32):
     return "".join(c for c in raw.decode() if c.isalnum())[:n]
 
 domain = os.environ["DOMAIN"]
-out = {
+print(json.dumps({
     "BUZZ_DOMAIN": domain,
     "BUZZ_WILDCARD_BASE": os.environ["WILDCARD_BASE"],
     "CADDY_ACME_EMAIL": os.environ["ACME_EMAIL"],
@@ -119,8 +107,7 @@ out = {
     "CADDY_HTTP_PORT": "80",
     "CADDY_HTTPS_PORT": "443",
     "RUST_LOG": "buzz_relay=info,buzz_db=info,buzz_auth=info,buzz_pubsub=info,tower_http=info",
-}
-print(json.dumps(out))
+}))
 '
 }
 
@@ -182,32 +169,21 @@ open(".env","w").write("\n".join(lines) + "\n")
 
 export DOMAIN WILDCARD_BASE ACME_EMAIL
 
-if secret_exists "${SECRET_NAME}"; then
-  echo "Using existing secret ${SECRET_NAME}"
-  JSON="$(read_secret_json "${SECRET_NAME}")"
+if [[ -f .env ]]; then
+  echo "Using existing ${DEPLOY_DIR}/.env"
 else
-  if secret_exists "${LEGACY_SECRET}"; then
-    echo "Seeding ${SECRET_NAME} from ${LEGACY_SECRET} (reuse relay keys)"
-    JSON="$(fill_missing "$(seed_from_legacy "$(read_secret_json "${LEGACY_SECRET}")")")"
+  if [[ -f "${SEED_JSON}" ]]; then
+    echo "Seeding .env from ${SEED_JSON} (reuse relay keys)"
+    JSON="$(fill_missing "$(seed_from_legacy "$(cat "${SEED_JSON}")")")"
   else
-    echo "Generating new ${SECRET_NAME}"
+    echo "Generating new .env (no seed.json)"
     JSON="$(generate_secret_json)"
   fi
-  aws secretsmanager create-secret \
-    --name "${SECRET_NAME}" \
-    --region "${REGION}" \
-    --secret-string "${JSON}" \
-    --tags Key=Project,Value=buzz Key=Role,Value=relay-ec2 >/dev/null
+  write_env "${JSON}"
 fi
 
-write_env "${JSON}"
-
-if [[ ! -x ./run.sh ]]; then
-  chmod +x ./run.sh
-fi
-
+chmod +x ./run.sh
 export BUZZ_COMPOSE_TLS="${ENABLE_TLS}"
 ./run.sh start
 ./run.sh status || true
-
 echo "Bootstrap complete. TLS=${ENABLE_TLS} domain=${DOMAIN}"

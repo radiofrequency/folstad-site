@@ -16,7 +16,6 @@ import * as integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as authorizers from "aws-cdk-lib/aws-apigatewayv2-authorizers";
 import { Construct } from "constructs";
 import * as path from "node:path";
-import { BuzzRelayEc2 } from "./buzz-relay-ec2";
 
 export class BuzzStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -137,38 +136,6 @@ export class BuzzStack extends cdk.Stack {
       internetFacing: true,
       securityGroup: albSg,
     });
-
-    // Free BuzzFTW relay on one EC2 (no LNbits / Fargate platform / RDS / Redis).
-    // DNS cutover is opt-in so a deploy does not steal relay.buzzftw.com before migrate.
-    const relayEnabled =
-      this.node.tryGetContext("buzzRelayEnabled") === undefined ||
-      this.node.tryGetContext("buzzRelayEnabled") === true ||
-      this.node.tryGetContext("buzzRelayEnabled") === "true";
-    if (relayEnabled) {
-      const ctxBool = (key: string) =>
-        this.node.tryGetContext(key) === true || this.node.tryGetContext(key) === "true";
-      const relay = new BuzzRelayEc2(this, "BuzzRelay", {
-        vpc,
-        domain: this.node.tryGetContext("buzzRelayDomain") ?? "relay.buzzftw.com",
-        zoneId: this.node.tryGetContext("buzzFtwZoneId") ?? "Z03673022RSY2XVF548I0",
-        zoneName: this.node.tryGetContext("buzzFtwZoneName") ?? "buzzftw.com",
-        instanceType: this.node.tryGetContext("buzzRelayInstanceType") ?? "t4g.medium",
-        acmeEmail: this.node.tryGetContext("buzzRelayAcmeEmail") || undefined,
-        cutoverDns: ctxBool("buzzRelayCutover"),
-      });
-      new cdk.CfnOutput(this, "OutRelayInstanceId", {
-        value: relay.instance.instanceId,
-        exportName: "BuzzRelayInstanceId",
-      });
-      new cdk.CfnOutput(this, "OutRelayEip", {
-        value: relay.eip.attrPublicIp,
-        exportName: "BuzzRelayEip",
-      });
-      new cdk.CfnOutput(this, "OutRelaySsm", {
-        value: `aws ssm start-session --target ${relay.instance.instanceId}`,
-        exportName: "BuzzRelaySsm",
-      });
-    }
 
     // HTTP listener — per-project host/path rules attached by provisioner
     const httpListener = alb.addListener("Http", {

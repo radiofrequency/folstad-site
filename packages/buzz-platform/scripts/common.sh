@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared helpers for Buzz EC2 migration scripts (run on Ryan's Mac with buzz-deploy).
+# Shared helpers for Buzz Hetzner migration (laptop: buzz-deploy AWS + SSH to the VPS).
 set -euo pipefail
 
 export AWS_REGION="${AWS_REGION:-us-west-2}"
@@ -7,12 +7,22 @@ export AWS_DEFAULT_REGION="${AWS_REGION}"
 export AWS_PAGER=""
 
 CLUSTER="${BUZZ_ECS_CLUSTER:-buzz}"
-STACK="${BUZZ_STACK_NAME:-BuzzStack}"
 ZONE_ID="${BUZZ_FTW_ZONE_ID:-Z03673022RSY2XVF548I0}"
 ZONE_NAME="${BUZZ_FTW_ZONE_NAME:-buzzftw.com}"
 RELAY_HOST="${BUZZ_RELAY_HOST:-relay.buzzftw.com}"
-SECRET_NAME="${BUZZ_SECRET_NAME:-buzz/relay-ec2}"
 LEGACY_SECRET="${BUZZ_LEGACY_SECRET_NAME:-buzz/platform}"
+REMOTE_DIR="${BUZZ_REMOTE_DIR:-/opt/buzz}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "${SCRIPT_DIR}/.relay.env" ]]; then
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}/.relay.env"
+fi
+
+SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+if [[ -n "${BUZZ_SSH_KEY:-}" ]]; then
+  SSH_OPTS+=(-i "${BUZZ_SSH_KEY}")
+fi
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -27,70 +37,31 @@ require_account() {
   echo "AWS account ${id} region ${AWS_REGION}"
 }
 
-cfn_output() {
-  aws cloudformation describe-stacks --stack-name "${STACK}" \
-    --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue | [0]" \
-    --output text
-}
-
-relay_instance_id() {
-  if [[ -n "${BUZZ_INSTANCE_ID:-}" ]]; then
-    echo "${BUZZ_INSTANCE_ID}"
+relay_ip() {
+  if [[ -n "${HETZNER_IP:-}" ]]; then
+    echo "${HETZNER_IP}"
     return
   fi
-  local from_cfn
-  from_cfn="$(cfn_output OutRelayInstanceId 2>/dev/null || true)"
-  if [[ -n "${from_cfn}" && "${from_cfn}" != "None" ]]; then
-    echo "${from_cfn}"
-    return
-  fi
-  aws ec2 describe-instances \
-    --filters "Name=tag:Name,Values=buzz-relay" "Name=instance-state-name,Values=running,pending" \
-    --query "Reservations[0].Instances[0].InstanceId" --output text
+  die "set HETZNER_IP (or scripts/.relay.env) to the VPS public IPv4"
 }
 
-relay_eip() {
-  if [[ -n "${BUZZ_RELAY_EIP:-}" ]]; then
-    echo "${BUZZ_RELAY_EIP}"
+relay_ssh() {
+  if [[ -n "${BUZZ_SSH:-}" ]]; then
+    echo "${BUZZ_SSH}"
     return
   fi
-  local from_cfn
-  from_cfn="$(cfn_output OutRelayEip 2>/dev/null || true)"
-  if [[ -n "${from_cfn}" && "${from_cfn}" != "None" ]]; then
-    echo "${from_cfn}"
-    return
-  fi
-  local iid
-  iid="$(relay_instance_id)"
-  aws ec2 describe-instances --instance-ids "${iid}" \
-    --query "Reservations[0].Instances[0].PublicIpAddress" --output text
+  echo "root@$(relay_ip)"
 }
 
-wait_ssm() {
-  local cmd_id="$1"
-  aws ssm wait command-executed --command-id "${cmd_id}" --instance-id "$(relay_instance_id)" || true
-  local status
-  status="$(aws ssm get-command-invocation --command-id "${cmd_id}" --instance-id "$(relay_instance_id)" \
-    --query Status --output text)"
-  aws ssm get-command-invocation --command-id "${cmd_id}" --instance-id "$(relay_instance_id)" \
-    --query "[StandardOutputContent,StandardErrorContent]" --output text
-  [[ "${status}" == "Success" ]] || die "SSM command ${cmd_id} status=${status}"
+ssh_run() {
+  local comments="$1"
+  local script="$2"
+  echo "SSH $(relay_ssh): ${comments}" >&2
+  ssh "${SSH_OPTS[@]}" "$(relay_ssh)" "bash -lc $(printf '%q' "${script}")"
 }
 
-ssm_run() {
-  local iid comments script cmd_id
-  iid="$(relay_instance_id)"
-  [[ -n "${iid}" && "${iid}" != "None" ]] || die "could not find buzz-relay instance"
-  comments="$1"
-  script="$2"
-  cmd_id="$(aws ssm send-command \
-    --instance-ids "${iid}" \
-    --document-name AWS-RunShellScript \
-    --comment "${comments}" \
-    --parameters commands="${script}" \
-    --query Command.CommandId --output text)"
-  echo "SSM ${cmd_id} on ${iid}: ${comments}" >&2
-  wait_ssm "${cmd_id}"
+scp_to() {
+  scp "${SSH_OPTS[@]}" "$1" "$(relay_ssh):$2"
 }
 
 discover_rds() {

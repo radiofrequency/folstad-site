@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Health-check the free relay on the Elastic IP (pre-DNS) or relay.buzzftw.com (post-cutover).
+# Health-check the free relay on the Hetzner IP (pre-DNS) or relay.buzzftw.com (post-cutover).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,26 +15,25 @@ while [[ $# -gt 0 ]]; do
     --url) TARGET="$2"; shift 2 ;;
     -h|--help)
       echo "Usage: $0 [--ip|--dns|--url URL]"
+      echo "Set HETZNER_IP or scripts/.relay.env"
       exit 0
       ;;
     *) die "unknown arg: $1" ;;
   esac
 done
 
-need aws
 need curl
-require_account
 
 if [[ -z "${TARGET}" ]]; then
   if [[ "${MODE}" == "dns" ]]; then
     TARGET="https://${RELAY_HOST}"
   elif [[ "${MODE}" == "ip" ]]; then
-    TARGET="http://$(relay_eip)"
+    TARGET="http://$(relay_ip)"
   else
     if curl -fsS --max-time 8 "https://${RELAY_HOST}/_liveness" >/dev/null 2>&1; then
       TARGET="https://${RELAY_HOST}"
     else
-      TARGET="http://$(relay_eip)"
+      TARGET="http://$(relay_ip)"
     fi
   fi
 fi
@@ -54,7 +53,6 @@ for path in /_liveness /_readiness; do
   fi
 done
 
-# NIP-11 (Desktop uses this to join)
 NIP_URL="${TARGET}/"
 if curl -fsS --max-time 15 \
   -H "Accept: application/nostr+json" \
@@ -70,7 +68,11 @@ else
   fail=1
 fi
 
-ssm_run "buzz compose status" "cd /opt/buzz && ./run.sh status" || fail=1
+if ssh "${SSH_OPTS[@]}" "$(relay_ssh)" true 2>/dev/null; then
+  ssh_run "compose status" "cd ${REMOTE_DIR} && ./run.sh status" || fail=1
+else
+  echo "SSH skip (set BUZZ_SSH if you want compose status)"
+fi
 
 if [[ "${fail}" -ne 0 ]]; then
   die "relay is not healthy"

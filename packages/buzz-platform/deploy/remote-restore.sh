@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run on the relay EC2 via SSM. Restores /opt/buzz/migrate/latest.dump into compose Postgres.
+# Run on the Hetzner VPS (via SSH). Restores /opt/buzz/migrate/latest.dump into compose Postgres.
 set -euo pipefail
 
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/buzz}"

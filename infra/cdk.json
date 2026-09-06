@@ -1,12 +1,6 @@
 {
   "app": "npx ts-node --prefer-ts-exts bin/buzz.ts",
   "context": {
-    "@aws-cdk/core:stackRelativeExports": true,
-    "buzzRelayEnabled": true,
-    "buzzRelayDomain": "relay.buzzftw.com",
-    "buzzFtwZoneId": "Z03673022RSY2XVF548I0",
-    "buzzFtwZoneName": "buzzftw.com",
-    "buzzRelayInstanceType": "t4g.medium",
-    "buzzRelayCutover": false
+    "@aws-cdk/core:stackRelativeExports": true
   }
 }
