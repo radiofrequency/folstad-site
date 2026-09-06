@@ -1,0 +1,19 @@
+services:
+  tls-ask:
+    image: python:3.12-alpine
+    command: ["python", "/app/tls-ask.py"]
+    environment:
+      BUZZ_WILDCARD_BASE: ${BUZZ_WILDCARD_BASE:-buzzftw.com}
+    volumes:
+      - ./tls-ask.py:/app/tls-ask.py:ro
+    restart: unless-stopped
+    networks:
+      - buzz-net
+
+  caddy:
+    environment:
+      CADDY_ACME_EMAIL: ${CADDY_ACME_EMAIL:?set CADDY_ACME_EMAIL}
+      BUZZ_WILDCARD_BASE: ${BUZZ_WILDCARD_BASE:-buzzftw.com}
+    depends_on:
+      tls-ask:
+        condition: service_started

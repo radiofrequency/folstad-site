@@ -5,7 +5,8 @@
 | `buzz-shared` | API + Project TypeScript types |
 | `buzz-api` | Lambda handlers (JWT auth, DynamoDB, ECS lifecycle) |
 | `buzz-runtime` | Fargate container: `/` landing + `/health` |
-| `../../infra` | CDK: user pool, HTTP API, DDB, VPC, ECS cluster, ALB, ECR, Route53 |
+| `buzz-platform` | Free BuzzFTW relay on one EC2 (compose, migrate, teardown). No LNbits |
+| `../../infra` | CDK: control plane + `BuzzRelayEc2` |
 
 ## Local site
 
@@ -23,3 +24,5 @@ Auth and API always talk to the live control plane (public SPA client config in 
 cd packages/buzz-api && npm i && npm run build
 cd ../../infra && npm i && npx cdk deploy
 ```
+
+Public relay (`relay.buzzftw.com`) is the EC2 compose stack. Runbook: [`../buzz-platform/MIGRATION.md`](../buzz-platform/MIGRATION.md).
