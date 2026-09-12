@@ -6,7 +6,7 @@
     "build": "tsc",
     "cdk": "cdk",
     "synth": "cdk synth",
-    "deploy": "cdk deploy --all --require-approval never"
+    "deploy": "cdk deploy BuzzAuthStack --require-approval never"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.189.0",

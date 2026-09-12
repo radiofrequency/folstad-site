@@ -19,25 +19,32 @@ export type AuthConfig = {
   region: string;
 };
 
-/** Public SPA config (safe to ship). Override with PUBLIC_* env if needed. */
-const DEFAULT_AUTH = {
-  userPoolId: "us-west-2_MIDcSvkwq",
-  clientId: "5klcs2rg7lmfgjggsl7bo2llkm",
-  region: "us-west-2",
-};
+/**
+ * Public SPA config. Set PUBLIC_COGNITO_USER_POOL_ID + PUBLIC_COGNITO_CLIENT_ID
+ * from BuzzAuthStack outputs after deploy. Region defaults to us-west-2.
+ *
+ * The BuzzStack pool us-west-2_MIDcSvkwq / client 5klcs2rg7lmfgjggsl7bo2llkm
+ * was deleted with the stack (2026-09-07). Do not restore those IDs.
+ */
+const DEFAULT_REGION = "us-west-2";
 
 export function getAuthConfig(): AuthConfig {
   return {
-    userPoolId:
-      (import.meta.env.PUBLIC_COGNITO_USER_POOL_ID as string | undefined) ||
-      DEFAULT_AUTH.userPoolId,
-    clientId:
-      (import.meta.env.PUBLIC_COGNITO_CLIENT_ID as string | undefined) ||
-      DEFAULT_AUTH.clientId,
+    userPoolId: (import.meta.env.PUBLIC_COGNITO_USER_POOL_ID as string | undefined)?.trim() ?? "",
+    clientId: (import.meta.env.PUBLIC_COGNITO_CLIENT_ID as string | undefined)?.trim() ?? "",
     region:
-      (import.meta.env.PUBLIC_COGNITO_REGION as string | undefined) ||
-      DEFAULT_AUTH.region,
+      (import.meta.env.PUBLIC_COGNITO_REGION as string | undefined)?.trim() || DEFAULT_REGION,
   };
+}
+
+function requireAuthConfig(): AuthConfig {
+  const cfg = getAuthConfig();
+  if (!cfg.userPoolId || !cfg.clientId) {
+    throw new Error(
+      "Cognito is not configured. Set PUBLIC_COGNITO_USER_POOL_ID and PUBLIC_COGNITO_CLIENT_ID from BuzzAuthStack outputs.",
+    );
+  }
+  return cfg;
 }
 
 /** @deprecated use getAuthConfig */
@@ -223,7 +230,7 @@ export async function signUp(email: string, password: string): Promise<{ needsCo
   email = email.trim().toLowerCase();
   if (!email || !password) throw new Error("Email and password required");
 
-  const cfg = getAuthConfig();
+  const cfg = requireAuthConfig();
   try {
     await idpCall(cfg.region, "SignUp", {
       ClientId: cfg.clientId,
@@ -244,7 +251,7 @@ export async function confirmSignUp(email: string, code: string): Promise<void> 
   const normalized = normalizeCode(code);
   if (!normalized) throw new Error("Enter the verification code from your email.");
 
-  const cfg = getAuthConfig();
+  const cfg = requireAuthConfig();
   try {
     await idpCall(cfg.region, "ConfirmSignUp", {
       ClientId: cfg.clientId,
@@ -262,7 +269,7 @@ export async function resendConfirmationCode(email: string): Promise<void> {
   email = email.trim().toLowerCase();
   if (!email) throw new Error("Email is required");
 
-  const cfg = getAuthConfig();
+  const cfg = requireAuthConfig();
   try {
     await idpCall(cfg.region, "ResendConfirmationCode", {
       ClientId: cfg.clientId,
@@ -279,7 +286,7 @@ export async function forgotPassword(email: string): Promise<{ message: string }
   email = email.trim().toLowerCase();
   if (!email) throw new Error("Email is required");
 
-  const cfg = getAuthConfig();
+  const cfg = requireAuthConfig();
   try {
     await idpCall(cfg.region, "ForgotPassword", {
       ClientId: cfg.clientId,
@@ -311,7 +318,7 @@ export async function confirmForgotPassword(
     throw new Error("Password must be at least 8 characters.");
   }
 
-  const cfg = getAuthConfig();
+  const cfg = requireAuthConfig();
   try {
     await idpCall(cfg.region, "ConfirmForgotPassword", {
       ClientId: cfg.clientId,
@@ -328,7 +335,7 @@ export async function confirmForgotPassword(
 
 export async function signIn(email: string, password: string): Promise<AuthSession> {
   email = email.trim().toLowerCase();
-  const cfg = getAuthConfig();
+  const cfg = requireAuthConfig();
 
   try {
     const result = await idpCall<{

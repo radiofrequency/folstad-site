@@ -2,13 +2,15 @@
 
 Repo: [`radiofrequency/buzzftw`](https://github.com/radiofrequency/buzzftw). Product: https://buzzftw.com — relay: https://relay.buzzftw.com.
 
-Account `217074483639`, region `us-west-2`, stack `BuzzStack`, zone `buzzftw.com` (`Z03673022RSY2XVF548I0`).
+Account `217074483639`, region `us-west-2`, zone `buzzftw.com` (`Z03673022RSY2XVF548I0`).
+
+`BuzzStack` is **DELETE_COMPLETE** (2026-09-07), including Cognito pool `us-west-2_MIDcSvkwq`. New auth is **`BuzzAuthStack`** — see [`../../infra/README.md`](../../infra/README.md). Do not recreate Fargate / ALB / RDS / ElastiCache / lnbits.
 
 Laptop: IAM **buzz-deploy** (for RDS snapshot / Route53 / teardown) plus SSH to the VPS. Scripts default to dry-run / no DNS change / no deletes.
 
 This repo’s CDK never defined `BuzzPlatform` / `LnbitsService`. Those live resources (if present) were created outside the current sources. **`cdk deploy` does not create a relay.** Tear down Fargate/RDS/Redis/LNbits with the script below, not `cdk destroy`.
 
-Do **not** `cdk destroy BuzzStack` — that removes Cognito, DynamoDB, and the operator API.
+Do **not** `cdk deploy BuzzStack` — that stack is retired and would resurrect compute spend plus a `folstad.ca` GitHub Pages zone.
 
 ## Estimated monthly cost
 
@@ -148,7 +150,7 @@ aws rds delete-db-instance \
   --delete-automated-backups
 ```
 
-**Do not delete:** Cognito, `buzz-projects`, config bucket, `buzz-runtime` ECR, ECS cluster `buzz`, Buzz project ALB (if still used for `*.folstad.ca`), CloudFront/S3 for buzzftw.com marketing, the Route53 zone, the Hetzner VPS.
+**Do not delete:** CloudFront/S3 for buzzftw.com marketplace, the `buzzftw.com` Route53 zone, the Hetzner VPS. Do not touch `folstad.ca` DNS (Folstad Site CloudFront). New Cognito lives in `BuzzAuthStack` after the coordinator deploys it.
 
 ## Rollback
 

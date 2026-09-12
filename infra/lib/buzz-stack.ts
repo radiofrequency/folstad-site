@@ -16,17 +16,21 @@ import * as integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as authorizers from "aws-cdk-lib/aws-apigatewayv2-authorizers";
 import { Construct } from "constructs";
 import * as path from "node:path";
+import { originBase, parseSiteOrigins } from "./site-origins";
 
+/**
+ * RETIRED full Buzz platform (VPC, ALB, ECS, DynamoDB, Route53 FolstadCaZone, Lambda API).
+ * BuzzStack is DELETE_COMPLETE (2026-09-07). Do not deploy — it resurrects compute spend
+ * and would recreate FolstadCaZone GitHub Pages records that clobber Folstad Site CloudFront.
+ *
+ * Intended path: BuzzAuthStack. This class is only instantiated when
+ * DEPLOY_FAT_STACK=1 or -c deployFatStack=true.
+ */
 export class BuzzStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // Live Cognito CORS/OAuth origins. Still folstad.ca until Ryan adds
-    // buzzftw.com in CDK context / AWS — do not invent origins or secrets here.
-    const siteOrigins = (
-      this.node.tryGetContext("siteOrigins") ??
-      "http://localhost:4321,https://folstad.ca,https://www.folstad.ca"
-    ).split(",");
+    const siteOrigins = parseSiteOrigins(this.node.tryGetContext("siteOrigins"));
 
     // ——— Cognito ———
     const userPool = new cognito.UserPool(this, "BuzzUserPool", {
@@ -66,14 +70,13 @@ export class BuzzStack extends cdk.Stack {
           cognito.OAuthScope.EMAIL,
           cognito.OAuthScope.PROFILE,
         ],
-        callbackUrls: siteOrigins.map((o: string) => `${o.replace(/\/$/, "")}/auth/callback`),
-        logoutUrls: siteOrigins.map((o: string) => o.replace(/\/$/, "")),
+        callbackUrls: siteOrigins.map((o: string) => `${originBase(o)}/auth/callback`),
+        logoutUrls: siteOrigins.map((o: string) => originBase(o)),
       },
     });
 
-    // Live Cognito hosted-domain prefix. Renaming it replaces the Cognito URL.
     const domainPrefix =
-      this.node.tryGetContext("cognitoDomainPrefix") ?? `buzz-folstad-${this.account}`;
+      this.node.tryGetContext("cognitoDomainPrefix") ?? `buzzftw-${this.account}`;
 
     userPool.addDomain("BuzzDomain", {
       cognitoDomain: { domainPrefix },
@@ -149,17 +152,17 @@ export class BuzzStack extends cdk.Stack {
       }),
     });
 
-    // ——— Route53: folstad.ca (live AWS — do not retarget in this repo rename) ———
-    // Apex/www still point at GitHub Pages IPs from when marketing lived here.
-    // Folstad marketing content now lives in private radiofrequency/folstad.ca.
-    // Wildcard still sends project hosts (*.folstad.ca) to the Buzz ALB.
-    // Changing these records is a Ryan/DNS decision, not a code rename.
+    // Historical FolstadCaZone + GitHub Pages records. Kept only so this retired
+    // class still synths. Do not deploy: a new PublicHostedZone for folstad.ca
+    // with github.io targets would clobber Folstad Site’s CloudFront cutover.
+    // Live community wildcard is Hetzner (*.buzzftw.com). Folstad.ca DNS is
+    // owned by the separate marketing site — never manage it from this stack.
     const zone = new route53.PublicHostedZone(this, "FolstadCaZone", {
       zoneName: "folstad.ca",
-      comment: "folstad.ca: apex/www + Buzz project wildcard (live zone; do not replace)",
+      comment: "RETIRED — do not deploy; Folstad Site CloudFront owns folstad.ca DNS",
     });
 
-    // Apex → GitHub Pages IPs (live record; marketing repo is radiofrequency/folstad.ca)
+    // Historical GitHub Pages apex (do not deploy — not the live Folstad Site target)
     new route53.ARecord(this, "ApexGithubPages", {
       zone,
       // zone apex
@@ -172,7 +175,7 @@ export class BuzzStack extends cdk.Stack {
       ttl: cdk.Duration.minutes(5),
     });
 
-    // www → GitHub Pages hostname (live record; do not claim folstad.ca from this repo)
+    // Historical www → github.io (do not deploy)
     new route53.CnameRecord(this, "WwwGithubPages", {
       zone,
       recordName: "www",
@@ -180,7 +183,7 @@ export class BuzzStack extends cdk.Stack {
       ttl: cdk.Duration.minutes(5),
     });
 
-    // *.folstad.ca → Buzz ALB (project subdomains via host-header rules)
+    // Historical *.folstad.ca → Buzz ALB (project-host ALB path is retired)
     new route53.ARecord(this, "WildcardToAlb", {
       zone,
       recordName: "*",
@@ -218,10 +221,10 @@ export class BuzzStack extends cdk.Stack {
       RUNTIME_IMAGE: `${runtimeRepo.repositoryUri}:latest`,
       ALB_LISTENER_ARN: httpListener.listenerArn,
       ALB_DNS_NAME: alb.loadBalancerDnsName,
-      // After GoDaddy NS → Route53, project URLs use https? still http until ACM
       CUSTOM_DOMAIN_ENABLED: "true",
-      // Live project host suffix (*.folstad.ca). Do not switch to .buzzftw.com here.
-      DOMAIN_SUFFIX: ".folstad.ca",
+      // Community hosts are <sub>.buzzftw.com on the live Hetzner wildcard.
+      // Project-host ALB is retired unless Ryan brings it back.
+      DOMAIN_SUFFIX: ".buzzftw.com",
       VPC_ID: vpc.vpcId,
       TASK_SUBNETS: vpc.publicSubnets.map((s) => s.subnetId).join(","),
       TASK_SECURITY_GROUP: taskSg.securityGroupId,
@@ -409,7 +412,7 @@ export class BuzzStack extends cdk.Stack {
     new cdk.CfnOutput(this, "OutNameServers", {
       value: cdk.Fn.join(",", zone.hostedZoneNameServers ?? []),
       exportName: "BuzzNameServers",
-      description: "NS records for the live folstad.ca hosted zone (registrar cutover is a human/Ryan task)",
+      description: "RETIRED FolstadCaZone NS — do not apply; would clobber Folstad Site CloudFront",
     });
   }
 }
