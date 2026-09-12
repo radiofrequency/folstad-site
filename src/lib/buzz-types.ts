@@ -46,8 +46,11 @@ export type CreateProjectRequest = {
   bots: BuzzBot[];
 };
 
-/** Live project host suffix (`*.folstad.ca`). Changing this is a Ryan/DNS/AWS decision. */
-export const DOMAIN_SUFFIX = ".folstad.ca";
+/**
+ * Community host suffix. Live `*.buzzftw.com` already hits Hetzner (coconutphuket).
+ * The project-host ALB path is retired unless Ryan brings it back.
+ */
+export const DOMAIN_SUFFIX = ".buzzftw.com";
 
 export function fullDomain(subdomain: string): string {
   return `${subdomain}${DOMAIN_SUFFIX}`;

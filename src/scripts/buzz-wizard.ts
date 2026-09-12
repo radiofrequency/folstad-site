@@ -2,6 +2,7 @@ import { slugify } from "../lib/slug";
 import type { BuzzBotTemplate, BuzzSme } from "../data/buzz-sme";
 import { getSession, requireSession } from "../lib/buzz-auth";
 import { createProject, getProject } from "../lib/buzz-api";
+import { DOMAIN_SUFFIX } from "../lib/buzz-types";
 
 type Bot = {
   id: string;
@@ -35,8 +36,6 @@ const FLOW = [
 
 type StepId = (typeof FLOW)[number];
 
-// Live project host suffix (`*.folstad.ca`). Do not switch to .buzzftw.com here.
-const DOMAIN_SUFFIX = ".folstad.ca";
 const STORAGE_KEY = "buzz-wizard-v2";
 
 function loadSme(): BuzzSme[] {

@@ -6,8 +6,8 @@ name: Marketing Pages (disabled)
 # Do not re-enable actions/deploy-pages from this repo. That path used to publish
 # www.folstad.ca / GitHub Pages from the old folstad-site monorepo.
 #
-# Buzz control plane: laptop `cd infra && npx cdk deploy` (existing AWS creds).
-# Buzz relay: packages/buzz-platform (see MIGRATION.md).
+# Buzz auth: laptop `cd infra && npx cdk deploy BuzzAuthStack` (see infra/README.md).
+# Do not deploy retired BuzzStack. Buzz relay: packages/buzz-platform (MIGRATION.md).
 
 on:
   workflow_dispatch:
@@ -20,6 +20,6 @@ jobs:
         run: |
           echo "Marketing is not deployed from radiofrequency/buzzftw."
           echo "Use radiofrequency/folstad.ca for the Folstad marketing site."
-          echo "Buzz control plane: cd infra && npx cdk deploy"
+          echo "Buzz auth: cd infra && npx cdk deploy BuzzAuthStack"
           echo "Buzz relay: packages/buzz-platform (MIGRATION.md)"
           echo "Leave the folstad-pages branch on GitHub for humans."

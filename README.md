@@ -22,7 +22,7 @@ This repo was `radiofrequency/folstad-site` (Folstad AI marketing + Buzz in one 
 | Path | Role |
 |------|------|
 | `src/` | Astro SPA: Buzz launcher, auth, dashboard. Leftover Folstad marketing pages (`/`, `/restaurant`) are **not** the live marketing site. |
-| `infra/` | AWS CDK control plane (Cognito, API, DynamoDB, ECS hooks) |
+| `infra/` | AWS CDK — **`BuzzAuthStack`** (Cognito only). Fat `BuzzStack` is retired. |
 | `packages/buzz-api` | Lambda handlers |
 | `packages/buzz-runtime` | Fargate project runtime image |
 | `packages/buzz-shared` | Shared types |
@@ -41,7 +41,7 @@ Open the URL Astro prints (usually `http://localhost:4321`).
 
 Buzz app routes: `/signup` → verify email → `/login` → `/buzz` → `/dashboard`.
 
-Auth and API talk to the live control plane (public SPA client config in `src/lib`). Optional overrides: `.env.example`.
+Auth talks to Cognito. Set `PUBLIC_COGNITO_*` from `BuzzAuthStack` outputs (see [`.env.example`](.env.example) and [`infra/README.md`](infra/README.md)). The deleted pool `us-west-2_MIDcSvkwq` is gone — do not hard-code it.
 
 ```bash
 npm run build
@@ -56,10 +56,11 @@ Default `SITE_URL` is `https://buzzftw.com`. Override with `SITE_URL=...` if you
 
 Buzz infra is **not** deployed by GitHub Actions from this repo:
 
-- Control plane: `cd infra && npm i && npx cdk deploy` (existing laptop AWS credentials; do not invent secrets).
+- **Auth (intended):** [`infra/README.md`](infra/README.md) — `cd infra && npx cdk deploy BuzzAuthStack`. Then set `PUBLIC_COGNITO_*` from the outputs.
+- **Do not** `cdk deploy BuzzStack` / `--all` against the fat stack. That would recreate VPC/ALB/ECS and a `folstad.ca` hosted zone pointing at github.io.
 - Relay: [`packages/buzz-platform/MIGRATION.md`](packages/buzz-platform/MIGRATION.md) — `relay.buzzftw.com` on Hetzner.
 
-Apex `buzzftw.com` / `www` stay on the existing CloudFront/S3 marketing host. Changing DNS, AWS account settings, or production credentials is a Ryan task.
+Apex `buzzftw.com` / `www` stay on the existing CloudFront/S3 marketplace host. Community `*.buzzftw.com` already hits Hetzner. Do not touch `folstad.ca` DNS (separate Folstad Site CloudFront).
 
 ## Brand assets
 

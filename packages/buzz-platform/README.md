@@ -2,7 +2,9 @@
 
 Single-box BuzzFTW: **relay + Postgres + Redis + MinIO + Caddy**. No Lightning, no LNbits.
 
-The Buzz control plane (Cognito, DynamoDB `buzz-projects`, HTTP API) stays in AWS CDK in this repo (`radiofrequency/buzzftw`). **`cdk deploy` does not create a relay.** The public `relay.buzzftw.com` path is a Hetzner VPS.
+Auth is the slim CDK stack **`BuzzAuthStack`** (Cognito only) in `infra/`. **`cdk deploy` does not create a relay** and must not redeploy the retired fat `BuzzStack`. The public `relay.buzzftw.com` path is a Hetzner VPS.
+
+Community hosts (`*.buzzftw.com`) already hit this box. Code `DOMAIN_SUFFIX` is `.buzzftw.com` to match that wildcard — it does not mean CDK should create those records. Marketplace apex/www stay on S3 + CloudFront; Cognito CORS/OAuth origins are `https://buzzftw.com` and `https://www.buzzftw.com`. Cutover: [`../../infra/README.md`](../../infra/README.md).
 
 ## Layout
 
