@@ -1,7 +1,8 @@
 # Sales Desk — Grok Bot installer
 
-Canonical URL: https://www.folstad.ca/grok/salesdesk.md
+Canonical URL: https://buzzftw.com/grok/salesdesk.md
 Also on S3/CloudFront: https://www.buzzftw.com/grok/salesdesk.md
+Historical marketing host (do not treat this repo as its publisher): https://www.folstad.ca/grok/salesdesk.md
 
 You fetched this because a human pasted the URL into Grok Bot. This file is the **installer**, not a tour catalog.
 
@@ -14,7 +15,7 @@ You fetched this because a human pasted the URL into Grok Bot. This file is the 
 3. Create `/workspace/sales-desk/scripts/` and download the scrape tools:
 
 ```
-BASE=https://www.folstad.ca/grok/salesdesk/scripts
+BASE=https://buzzftw.com/grok/salesdesk/scripts
 mkdir -p /workspace/sales-desk/scripts
 cd /workspace/sales-desk/scripts
 curl -fsSL "$BASE/paths.py" -o paths.py
@@ -24,7 +25,7 @@ curl -fsSL "$BASE/scrape.py" -o scrape.py
 curl -fsSL "$BASE/query.py" -o query.py
 ```
 
-If folstad.ca fails, use `https://www.buzzftw.com/grok/salesdesk/scripts` as `BASE`.
+If buzzftw.com fails, use `https://www.buzzftw.com/grok/salesdesk/scripts` as `BASE`. The old marketing copy was at `https://www.folstad.ca/grok/salesdesk/scripts`.
 
 4. Confirm the files exist. Then reply with the **requirements table** (website URL, Gmail plugin, WhatsApp Web). Stop. Wait for the owner. Do not invent a catalog.
 
@@ -124,7 +125,7 @@ When the user first messages you without a task (after install), run:
 > 3. Scrape *their* site into `/workspace/sales-desk/salesdesk.db`. Show a 5-row sample including buy_url. Ask if it looks right.
 > 4. Then watch the inbox or ask for one pasted guest message and auto-draft from SQLite. Do not send.
 
-If `/workspace/sales-desk/` is missing, create it. Download scripts from https://www.folstad.ca/grok/salesdesk/scripts/ if they are not already there.
+If `/workspace/sales-desk/` is missing, create it. Download scripts from https://buzzftw.com/grok/salesdesk/scripts/ if they are not already there.
 
 ## Requirements
 

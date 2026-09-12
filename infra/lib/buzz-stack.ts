@@ -21,6 +21,8 @@ export class BuzzStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    // Live Cognito CORS/OAuth origins. Still folstad.ca until Ryan adds
+    // buzzftw.com in CDK context / AWS — do not invent origins or secrets here.
     const siteOrigins = (
       this.node.tryGetContext("siteOrigins") ??
       "http://localhost:4321,https://folstad.ca,https://www.folstad.ca"
@@ -69,6 +71,7 @@ export class BuzzStack extends cdk.Stack {
       },
     });
 
+    // Live Cognito hosted-domain prefix. Renaming it replaces the Cognito URL.
     const domainPrefix =
       this.node.tryGetContext("cognitoDomainPrefix") ?? `buzz-folstad-${this.account}`;
 
@@ -146,15 +149,17 @@ export class BuzzStack extends cdk.Stack {
       }),
     });
 
-    // ——— Route53: folstad.ca (cut over NS from GoDaddy → stack outputs) ———
-    // Preserves marketing site on GitHub Pages; wildcard sends project hosts to the ALB.
-    // HTTPS/ACM is a follow-up once these nameservers are live at the registrar.
+    // ——— Route53: folstad.ca (live AWS — do not retarget in this repo rename) ———
+    // Apex/www still point at GitHub Pages IPs from when marketing lived here.
+    // Folstad marketing content now lives in private radiofrequency/folstad.ca.
+    // Wildcard still sends project hosts (*.folstad.ca) to the Buzz ALB.
+    // Changing these records is a Ryan/DNS decision, not a code rename.
     const zone = new route53.PublicHostedZone(this, "FolstadCaZone", {
       zoneName: "folstad.ca",
-      comment: "Buzz + marketing site (GitHub Pages apex/www)",
+      comment: "folstad.ca: apex/www + Buzz project wildcard (live zone; do not replace)",
     });
 
-    // Apex → GitHub Pages (A records)
+    // Apex → GitHub Pages IPs (live record; marketing repo is radiofrequency/folstad.ca)
     new route53.ARecord(this, "ApexGithubPages", {
       zone,
       // zone apex
@@ -167,7 +172,7 @@ export class BuzzStack extends cdk.Stack {
       ttl: cdk.Duration.minutes(5),
     });
 
-    // www → GitHub Pages
+    // www → GitHub Pages hostname (live record; do not claim folstad.ca from this repo)
     new route53.CnameRecord(this, "WwwGithubPages", {
       zone,
       recordName: "www",
@@ -215,6 +220,7 @@ export class BuzzStack extends cdk.Stack {
       ALB_DNS_NAME: alb.loadBalancerDnsName,
       // After GoDaddy NS → Route53, project URLs use https? still http until ACM
       CUSTOM_DOMAIN_ENABLED: "true",
+      // Live project host suffix (*.folstad.ca). Do not switch to .buzzftw.com here.
       DOMAIN_SUFFIX: ".folstad.ca",
       VPC_ID: vpc.vpcId,
       TASK_SUBNETS: vpc.publicSubnets.map((s) => s.subnetId).join(","),
@@ -403,7 +409,7 @@ export class BuzzStack extends cdk.Stack {
     new cdk.CfnOutput(this, "OutNameServers", {
       value: cdk.Fn.join(",", zone.hostedZoneNameServers ?? []),
       exportName: "BuzzNameServers",
-      description: "Set these NS records at GoDaddy for folstad.ca",
+      description: "NS records for the live folstad.ca hosted zone (registrar cutover is a human/Ryan task)",
     });
   }
 }

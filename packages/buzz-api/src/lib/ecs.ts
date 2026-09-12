@@ -3,7 +3,7 @@ import {
   UpdateServiceCommand,
   DescribeServicesCommand,
 } from "@aws-sdk/client-ecs";
-import type { Project, ProjectHealth, ProjectStatus } from "@folstad/buzz-shared";
+import type { Project, ProjectHealth, ProjectStatus } from "@buzzftw/buzz-shared";
 
 const ecs = new ECSClient({});
 

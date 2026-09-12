@@ -1,4 +1,4 @@
-import type { BuzzBot, CreateProjectRequest } from "@folstad/buzz-shared";
+import type { BuzzBot, CreateProjectRequest } from "@buzzftw/buzz-shared";
 
 const SUBDOMAIN_RE = /^[a-z0-9]([a-z0-9-]{0,46}[a-z0-9])?$/;
 

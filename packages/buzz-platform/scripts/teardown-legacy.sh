@@ -27,7 +27,7 @@ Deletes only the expensive BuzzFTW path:
 
 Keeps:
   Cognito, DynamoDB buzz-projects, operator HTTP API, config bucket
-  ECR buzz-runtime, ECS cluster, Folstad ALB (project hosts)
+  ECR buzz-runtime, ECS cluster, Buzz project ALB (*.folstad.ca hosts, live AWS)
   buzzftw.com / www CloudFront + S3 marketing
   Route53 zone ${ZONE_NAME}
   the Hetzner VPS and its /opt/buzz data
@@ -138,7 +138,7 @@ fi
 
 echo
 echo "Teardown step finished ($([[ "${DRY_RUN}" -eq 1 ]] && echo dry-run || echo executed))."
-echo "Not deleted (on purpose): Cognito, DynamoDB, API Gateway, Folstad ALB/ECS cluster,"
+echo "Not deleted (on purpose): Cognito, DynamoDB, API Gateway, Buzz project ALB/ECS cluster,"
 echo "marketing CloudFront/S3, Route53 zone, Hetzner VPS."
 echo "If the shared ALB is unused after this, remove it in a later CDK deploy — do not"
 echo "cdk destroy BuzzStack (that would delete the control plane)."

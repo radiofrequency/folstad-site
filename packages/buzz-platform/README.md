@@ -2,7 +2,7 @@
 
 Single-box BuzzFTW: **relay + Postgres + Redis + MinIO + Caddy**. No Lightning, no LNbits.
 
-The Folstad control plane (Cognito, DynamoDB `buzz-projects`, HTTP API) stays in AWS CDK. **`cdk deploy` does not create a relay.** The public `relay.buzzftw.com` path is a Hetzner VPS.
+The Buzz control plane (Cognito, DynamoDB `buzz-projects`, HTTP API) stays in AWS CDK in this repo (`radiofrequency/buzzftw`). **`cdk deploy` does not create a relay.** The public `relay.buzzftw.com` path is a Hetzner VPS.
 
 ## Layout
 

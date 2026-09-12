@@ -2,8 +2,10 @@
 
 **Date:** 2026-07-30  
 **Status:** Strategy discussed; not implemented. Ready for next agent (Cursor) to take over.  
-**Product site:** Folstad AI — custom AI agents for SMEs (`www.folstad.ca` / marketing site).  
+**Product site (as of this handoff):** Folstad AI — custom AI agents for SMEs (`www.folstad.ca` / marketing site).  
 **Primary CTA today:** X DM → [@RyanFrequency](https://x.com/RyanFrequency)
+
+> **Repo note (rename):** This file is a historical Folstad AI marketing GTM handoff. Live marketing now lives in private [`radiofrequency/folstad.ca`](https://github.com/radiofrequency/folstad.ca). This repo is [`radiofrequency/buzzftw`](https://github.com/radiofrequency/buzzftw) (Buzz product). The audience notes below are unchanged from 2026-07-30.
 
 ---
 
