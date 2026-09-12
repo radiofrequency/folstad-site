@@ -22,7 +22,7 @@ import {
   ModifyTargetGroupAttributesCommand,
 } from "@aws-sdk/client-elastic-load-balancing-v2";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import type { Project } from "@folstad/buzz-shared";
+import type { Project } from "@buzzftw/buzz-shared";
 
 const region = process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION ?? "us-west-2";
 

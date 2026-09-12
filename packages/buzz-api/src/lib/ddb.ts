@@ -6,7 +6,7 @@ import {
   QueryCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
-import type { Project } from "@folstad/buzz-shared";
+import type { Project } from "@buzzftw/buzz-shared";
 
 const table = () => process.env.PROJECTS_TABLE ?? "buzz-projects";
 

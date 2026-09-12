@@ -4,7 +4,7 @@ import type {
   APIGatewayProxyResultV2,
 } from "aws-lambda";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import { fullDomain, type Project } from "@folstad/buzz-shared";
+import { fullDomain, type Project } from "@buzzftw/buzz-shared";
 import { error, getUser, json, noContent } from "../lib/http";
 import { parseCreateBody } from "../lib/validate";
 import {

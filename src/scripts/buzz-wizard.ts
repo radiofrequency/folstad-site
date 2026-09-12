@@ -35,6 +35,7 @@ const FLOW = [
 
 type StepId = (typeof FLOW)[number];
 
+// Live project host suffix (`*.folstad.ca`). Do not switch to .buzzftw.com here.
 const DOMAIN_SUFFIX = ".folstad.ca";
 const STORAGE_KEY = "buzz-wizard-v2";
 

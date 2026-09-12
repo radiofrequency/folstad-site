@@ -1,62 +1,25 @@
-name: Deploy to GitHub Pages
+name: Marketing Pages (disabled)
 
-# www.folstad.ca is served from branch folstad-pages (tag folstad-v1).
-# main no longer auto-deploys so Buzz work does not overwrite the marketing site.
-# Re-enable push triggers here only if main should own Pages again.
+# radiofrequency/buzzftw is Buzz product only.
+# Folstad marketing lives in private radiofrequency/folstad.ca.
+# The folstad-pages branch is a historical snapshot — do not delete it from GitHub.
+# Do not re-enable actions/deploy-pages from this repo. That path used to publish
+# www.folstad.ca / GitHub Pages from the old folstad-site monorepo.
+#
+# Buzz control plane: laptop `cd infra && npx cdk deploy` (existing AWS creds).
+# Buzz relay: packages/buzz-platform (see MIGRATION.md).
+
 on:
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
-  build:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Build
-        env:
-          # Custom domain / root: leave BASE_PATH unset (build uses base: "/").
-          # Project site only: set repo variable BASE_PATH=folstad-site
-          BASE_PATH: ${{ vars.BASE_PATH }}
-          SITE_URL: ${{ vars.SITE_URL || 'https://radiofrequency.github.io' }}
-          # Buzz control plane (public client config — set as repo Actions variables)
-          PUBLIC_BUZZ_API_URL: ${{ vars.PUBLIC_BUZZ_API_URL }}
-          PUBLIC_COGNITO_USER_POOL_ID: ${{ vars.PUBLIC_COGNITO_USER_POOL_ID }}
-          PUBLIC_COGNITO_CLIENT_ID: ${{ vars.PUBLIC_COGNITO_CLIENT_ID }}
-          PUBLIC_COGNITO_REGION: ${{ vars.PUBLIC_COGNITO_REGION || 'us-west-2' }}
-          PUBLIC_COGNITO_DOMAIN: ${{ vars.PUBLIC_COGNITO_DOMAIN }}
-        run: npm run build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Refuse marketing / GitHub Pages deploy
+        run: |
+          echo "Marketing is not deployed from radiofrequency/buzzftw."
+          echo "Use radiofrequency/folstad.ca for the Folstad marketing site."
+          echo "Buzz control plane: cd infra && npx cdk deploy"
+          echo "Buzz relay: packages/buzz-platform (MIGRATION.md)"
+          echo "Leave the folstad-pages branch on GitHub for humans."

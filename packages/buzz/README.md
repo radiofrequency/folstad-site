@@ -6,7 +6,7 @@
 | `buzz-api` | Lambda handlers (JWT auth, DynamoDB, ECS lifecycle) |
 | `buzz-runtime` | Fargate container: `/` landing + `/health` |
 | `buzz-platform` | Free BuzzFTW relay on Hetzner (compose, migrate, teardown). No LNbits |
-| `../../infra` | CDK: Folstad control plane only (no relay EC2) |
+| `../../infra` | CDK: Buzz control plane only (no relay EC2). Repo: `radiofrequency/buzzftw` |
 
 ## Local site
 

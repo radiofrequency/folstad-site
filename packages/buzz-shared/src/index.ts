@@ -81,6 +81,7 @@ export type ApiErrorBody = {
   code?: string;
 };
 
+/** Live project host suffix (`*.folstad.ca`). Changing this is a Ryan/DNS/AWS decision. */
 export const DOMAIN_SUFFIX = ".folstad.ca";
 
 export function fullDomain(subdomain: string): string {

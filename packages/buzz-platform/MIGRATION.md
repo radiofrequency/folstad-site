@@ -1,5 +1,7 @@
 # BuzzFTW: migrate Fargate/RDS → one Hetzner VPS (free relay)
 
+Repo: [`radiofrequency/buzzftw`](https://github.com/radiofrequency/buzzftw). Product: https://buzzftw.com — relay: https://relay.buzzftw.com.
+
 Account `217074483639`, region `us-west-2`, stack `BuzzStack`, zone `buzzftw.com` (`Z03673022RSY2XVF548I0`).
 
 Laptop: IAM **buzz-deploy** (for RDS snapshot / Route53 / teardown) plus SSH to the VPS. Scripts default to dry-run / no DNS change / no deletes.
@@ -146,7 +148,7 @@ aws rds delete-db-instance \
   --delete-automated-backups
 ```
 
-**Do not delete:** Cognito, `buzz-projects`, config bucket, `buzz-runtime` ECR, ECS cluster `buzz`, Folstad project ALB (if still used for `*.folstad.ca`), CloudFront/S3 for buzzftw.com marketing, the Route53 zone, the Hetzner VPS.
+**Do not delete:** Cognito, `buzz-projects`, config bucket, `buzz-runtime` ECR, ECS cluster `buzz`, Buzz project ALB (if still used for `*.folstad.ca`), CloudFront/S3 for buzzftw.com marketing, the Route53 zone, the Hetzner VPS.
 
 ## Rollback
 

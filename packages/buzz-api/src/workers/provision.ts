@@ -2,7 +2,7 @@
  * Async provision worker Lambda.
  * Event: { projectId: string }
  */
-import type { Project } from "@folstad/buzz-shared";
+import type { Project } from "@buzzftw/buzz-shared";
 import { getProjectById, updateProject } from "../lib/ddb";
 import { provisionProject } from "../lib/provision-aws";
 
